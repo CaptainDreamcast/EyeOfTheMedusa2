@@ -2,14 +2,33 @@
 
 #include <tari/input.h>
 
+#include "collision.h"
+
+#define SCREEN_SIZE_X 640
+#define SCREEN_SIZE_Y 480
+
+
 PlayerData* gData;
 
 void setupPlayer(PlayerData* pData){
 	resetPhysicsObject(&pData->physics);
 	pData->col = makeCollisionObjectCirc(makePosition(0, 0, 0), 0, &pData->physics);
 	pData->isFocused = 0;
+	pData->bomb.amount = 2;
+	pData->bomb.active = 0;
+	resetAnimation(&pData->bomb.animation);
+	resetPhysicsObject(&pData->bomb.physics);
+	pData->bomb.col = makeCollisionObjectRect(makePosition(0,0,0), makePosition(SCREEN_SIZE_X, SCREEN_SIZE_Y, 0), &pData->bomb.physics);
+	pData->bomb.shotID = -1;
+	(void) pData->bomb.textures; // TODO	
+	(void) pData->shots; //TODO
+	
+	resetAnimation(&pData->animation);
+	(void) pData->textures; // TODO
+	pData->texturePosition = makeRectangle(0, 0, pData->textures[0].mTextureSize.x, pData->textures[0].mTextureSize.y);
 
 	gData = pData;
+	
 }
 
 void moveLeft(){
@@ -46,6 +65,44 @@ void unfocusPlayer(){
 	gData->isFocused = 0; 
 }
 
+void shutdownBomb(){
+	gData->bomb.active = 0;
+	removePlayerShot(gData->bomb.shotID);
+	resetAnimation(&gData->bomb.animation);
+}
+
+void actionAfterBombHitsEnemy(int shotID){
+	(void) shotID;
+}
+
+void usePlayerBomb(){
+	if(!gData->bomb.amount) return;
+	if(gData->bomb.active) return;
+
+	gData->bomb.active = 1;
+	gData->bomb.shotID = addPlayerShotRect(&gData->bomb.col, &gData->bomb.physics, &gData->bomb.animation, gData->bomb.textures, actionAfterBombHitsEnemy);
+	gData->bomb.amount--;
+}
+
+void fireActionAfter(int shotID){
+	removePlayerShot(shotID);
+}
+
+void updatePlayerShot(){
+	PlayerShotData* sData = &gData->shots;
+	if(handleDurationAndCheckIfOver(&sData->now, sData->duration)){
+		if(sData->currentType == PLAYER_SHOT_FIRE){
+			int level = sData->fireLevel;
+			addPlayerShotCirc(&sData->fire[level].col, &sData->fire[level].physics, &sData->fire[level].animation, sData->fire[level].textures, fireActionAfter);
+		}
+		// TODO: OTHER SHOT TYPES
+	}
+}
+
+void shootPlayerShot(){
+	updatePlayerShot();
+}
+
 void updatePlayer(PlayerData* pData){
 
 	updateInput();
@@ -78,4 +135,7 @@ void updatePlayer(PlayerData* pData){
 	normalizeMovement();
 }
 
-void drawPlayer(PlayerData* pData);
+void drawPlayer(PlayerData* pData){
+	animate(&gData->animation);
+	drawSprite(gData->textures[gData->animation.mFrame], gData->physics.mPosition, gData->texturePosition);
+}
