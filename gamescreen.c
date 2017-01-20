@@ -3,11 +3,11 @@
 GameScreenData gGameScreenData;
 
 void setupGameScreen(char* mainScriptPath){
-	setupScripts(&gGameScreenData.scripts, mainScriptPath);
-	setupPlayer(&gGameScreenData.player);
-	setupCollision(&gGameScreenData.collision);
 	setupPhysics(&gGameScreenData.physics);	
+	setupCollision(&gGameScreenData.collision);
+	setupPlayer(&gGameScreenData.player);
 	setupUserInterface(&gGameScreenData.userInterface);
+	setupScripts(&gGameScreenData.scripts, mainScriptPath);
 }
 
 void update(){

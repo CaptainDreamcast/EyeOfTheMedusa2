@@ -42,6 +42,7 @@ typedef struct{
 	int isFocused;
 	BombData bomb;
 	PlayerShotData shots;
+	int collisionID;
 
 	Animation animation;
 	TextureData textures[10];

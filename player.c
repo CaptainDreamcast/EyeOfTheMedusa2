@@ -10,6 +10,12 @@
 
 PlayerData* gData;
 
+void playerHit(int shotID, CollisionType otherShotType){
+	(void) shotID;
+	(void) otherShotType;
+	
+}
+
 void setupPlayer(PlayerData* pData){
 	resetPhysicsObject(&pData->physics);
 	pData->col = makeCollisionObjectCirc(makePosition(0, 0, 0), 0, &pData->physics);
@@ -26,6 +32,8 @@ void setupPlayer(PlayerData* pData){
 	resetAnimation(&pData->animation);
 	(void) pData->textures; // TODO
 	pData->texturePosition = makeRectangle(0, 0, pData->textures[0].mTextureSize.x, pData->textures[0].mTextureSize.y);
+
+	pData->collisionID = addPlayerCirc(&pData->col, playerHit);
 
 	gData = pData;
 	
@@ -71,8 +79,9 @@ void shutdownBomb(){
 	resetAnimation(&gData->bomb.animation);
 }
 
-void actionAfterBombHitsEnemy(int shotID){
+void actionAfterBombHitsEnemy(int shotID, CollisionType otherShotType){
 	(void) shotID;
+	(void) otherShotType;
 }
 
 void usePlayerBomb(){
@@ -84,8 +93,10 @@ void usePlayerBomb(){
 	gData->bomb.amount--;
 }
 
-void fireActionAfter(int shotID){
+void fireActionAfter(int shotID, CollisionType otherShotType){
+	(void) otherShotType;
 	removePlayerShot(shotID);
+	
 }
 
 void updatePlayerShot(){
