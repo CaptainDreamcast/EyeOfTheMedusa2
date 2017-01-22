@@ -42,7 +42,6 @@ typedef struct{
 	CollisionList enemyShots;
 	CollisionList enemies;
 	CollisionList player;
-	int idCounter;
 } CollisionData;
 
 void setupCollision(CollisionData* cData);
@@ -51,7 +50,7 @@ void updateCollision(CollisionData* cData);
 int addPlayerCirc(CollisionObjectCirc* col, collisionHitCB hitCB);
 int addPlayerShotRect(CollisionObjectRect* col, PhysicsObject* physics, Animation* animation, TextureData* textures, collisionHitCB hitCB);
 int addPlayerShotCirc(CollisionObjectCirc* col, PhysicsObject* physics, Animation* animation, TextureData* textures, collisionHitCB hitCB);
-int addEnemyShotCirc(int enemyShotType, PhysicsObject physics);
+int addEnemyShotCirc(CollisionObjectCirc* col, int enemyShotType, PhysicsObject physics, collisionHitCB hitCB);
 void removePlayerShot(int shotID);
 void removeEnemyShot(int shotID);
 

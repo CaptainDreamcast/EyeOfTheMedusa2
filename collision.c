@@ -15,7 +15,6 @@ void setupCollision(CollisionData* cData){
 	initList(&cData->enemyShots);
 	initList(&cData->enemies);
 	initList(&cData->player);
-	cData->idCounter = 0;
 	gData = cData;
 }
 
@@ -34,7 +33,7 @@ void addToCollisionList(CollisionList* list, CollisionElement* obj){
 
 int addToCollisionListObj(CollisionList* list, void* col, CollisionType type, collisionHitCB hitCB){
 	CollisionElement* obj = malloc(sizeof(CollisionElement));
-	obj->id = gData->idCounter++;
+	obj->id = getNextShotId();
 	obj->type = type;
 	obj->hitCB = hitCB;
 	obj->data = col;
@@ -94,7 +93,7 @@ void compareObjectsAndHandleCollision(CollisionElement* obj1, CollisionElement* 
 	} else if(obj1->type == COLLISION_OBJECT_RECT && obj2->type == COLLISION_OBJECT_CIRC){
 		isCollision = checkCollisionObjectCircRect(*colCirc2, *colRect1);
 	} else {
-		isCollision = checkCollisionObjectCircRect(*colCirc2, *colRect1);
+		isCollision = checkCollisionObjectRect(*colRect1, *colRect2);
 	}
 
 	if(!isCollision) return;
@@ -137,20 +136,31 @@ int addPlayerCirc(CollisionObjectCirc* col, collisionHitCB hitCB){
 
 int addPlayerShotRect(CollisionObjectRect* col, PhysicsObject* physics, Animation* animation, TextureData* textures, collisionHitCB hitCB){
 	int shotID = addToCollisionListRect(&gData->playerShots, col, COLLISION_PLAYER_SHOT, hitCB);
-	addToShotHandling(shotID, *physics, *animation, textures);
+	PhysicsObject* p2 = addToShotHandling(shotID, *physics, *animation, textures);
+	col->mPhysics = p2;
 	return shotID;
 }
 
 int addPlayerShotCirc(CollisionObjectCirc* col, PhysicsObject* physics, Animation* animation, TextureData* textures, collisionHitCB hitCB){
 	int shotID = addToCollisionListCirc(&gData->playerShots, col, COLLISION_PLAYER_SHOT, hitCB);
-	addToShotHandling(shotID, *physics, *animation, textures);
+	PhysicsObject* p2 = addToShotHandling(shotID, *physics, *animation, textures);
+	col->mPhysics = p2;
 	return shotID;
 }
 
-int addToCollisionListRect(CollisionList* list, CollisionObjectRect* rect, CollisionType type, collisionHitCB hitCB);
-
+int addEnemyShotCirc(CollisionObjectCirc* col, int enemyShotType, PhysicsObject physics, collisionHitCB hitCB){
+	int shotID = addToCollisionListCirc(&gData->enemyShots, col, COLLISION_ENEMY_SHOT, hitCB);
+	PhysicsObject* p2 = addToShotHandlingType(shotID, physics, enemyShotType);
+	col->mPhysics = p2;
+	return shotID;
+}
 
 void removePlayerShot(int shotID){
 	removeFromCollisionList(&gData->playerShots, shotID);
+	removeFromShotHandling(shotID);
+}
+
+void removeEnemyShot(int shotID){
+	removeFromCollisionList(&gData->enemyShots, shotID);
 	removeFromShotHandling(shotID);
 }

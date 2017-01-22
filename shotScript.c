@@ -19,6 +19,7 @@ typedef struct{
 	PhysicsObject physics;
 	PhysicsObject randomization;
 	Position basePosition;
+	CollisionObjectCirc col;
 
 } ShotScriptData;
 
@@ -33,6 +34,7 @@ void loadShotAssets(script* this, ShotScriptData* data){
 	resetPhysicsObject(&data->randomization);
 	data->physics.mPosition.z = ENEMY_SHOT_POSITION_Z;	
 	data->basePosition = makePosition(0, 0, 0);
+	data->col = makeCollisionObjectCirc(makePosition(0, 0, 0), 0, &data->physics);
 
 	while(this->pointers.cur != NULL){
 		char word[100];
@@ -83,6 +85,16 @@ void loadShotAssets(script* this, ShotScriptData* data){
 		} else if(!strcmp("TOWARDS_PLAYER", word)){
 			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &data->isTowardsPlayer);
 			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &data->speed);
+		}  else if(!strcmp("HIT_CENTER", word)){
+			int v;
+			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);
+			data->col.mCol.mCenter.x = v;
+			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);
+			data->col.mCol.mCenter.y = v;
+		} else if(!strcmp("HIT_RADIUS", word)){
+			int v;
+			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);
+			data->col.mCol.mRadius = v;
 		}
 
 		this->pointers.cur = toNextInstruction(this->pointers.cur, this->pointers.loadEnd);
@@ -157,8 +169,7 @@ ScriptResult updateShotScript(script * this){
 	addition = variatePosition(data->randomization.mAcceleration);
 	physics.mAcceleration = vecAdd(data->physics.mVelocity, addition);
 	
-
-	addEnemyShotCirc(data->shotType, physics);
+	addEnemyShotCirc(&data->col, data->shotType, physics, removeShotScriptShot);
 
 	return SCRIPT_RESULT_END;
 }
