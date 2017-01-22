@@ -1,0 +1,11 @@
+LOAD {
+	STOP ;
+}
+
+MAIN{
+	LEVEL LEVEL0 ;
+	LEVEL LEVEL1 ;
+	STOP ;
+}
+
+

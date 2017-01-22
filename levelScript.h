@@ -1,11 +1,11 @@
 #ifndef LEVELSCRIPT_H
 #define LEVELSCRIPT_H
 
-#include "scriptBase.h"
+#include "script.h"
 
 script* loadLevelScript(char* path);
 void unloadLevelScript(script * this);
-void updateLevelScript(script * this, double deltaTime);
+ScriptResult updateLevelScript(script * this);
 ScriptDrawingData getLevelScriptDrawingData(script * this);
 
 #endif

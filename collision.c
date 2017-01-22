@@ -137,13 +137,13 @@ int addPlayerCirc(CollisionObjectCirc* col, collisionHitCB hitCB){
 
 int addPlayerShotRect(CollisionObjectRect* col, PhysicsObject* physics, Animation* animation, TextureData* textures, collisionHitCB hitCB){
 	int shotID = addToCollisionListRect(&gData->playerShots, col, COLLISION_PLAYER_SHOT, hitCB);
-	addToShotHandling(shotID, physics, animation, textures);
+	addToShotHandling(shotID, *physics, *animation, textures);
 	return shotID;
 }
 
 int addPlayerShotCirc(CollisionObjectCirc* col, PhysicsObject* physics, Animation* animation, TextureData* textures, collisionHitCB hitCB){
 	int shotID = addToCollisionListCirc(&gData->playerShots, col, COLLISION_PLAYER_SHOT, hitCB);
-	addToShotHandling(shotID, physics, animation, textures);
+	addToShotHandling(shotID, *physics, *animation, textures);
 	return shotID;
 }
 

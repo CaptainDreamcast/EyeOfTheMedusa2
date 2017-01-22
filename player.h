@@ -53,4 +53,6 @@ void setupPlayer(PlayerData* pData);
 void updatePlayer(PlayerData* pData);
 void drawPlayer(PlayerData* pData);
 
+Position getPlayerPosition();
+
 #endif

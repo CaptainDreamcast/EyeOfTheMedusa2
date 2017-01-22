@@ -150,3 +150,7 @@ void drawPlayer(PlayerData* pData){
 	animate(&gData->animation);
 	drawSprite(gData->textures[gData->animation.mFrame], gData->physics.mPosition, gData->texturePosition);
 }
+
+Position getPlayerPosition(){
+	return gData->physics.mPosition;
+}

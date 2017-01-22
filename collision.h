@@ -51,6 +51,8 @@ void updateCollision(CollisionData* cData);
 int addPlayerCirc(CollisionObjectCirc* col, collisionHitCB hitCB);
 int addPlayerShotRect(CollisionObjectRect* col, PhysicsObject* physics, Animation* animation, TextureData* textures, collisionHitCB hitCB);
 int addPlayerShotCirc(CollisionObjectCirc* col, PhysicsObject* physics, Animation* animation, TextureData* textures, collisionHitCB hitCB);
+int addEnemyShotCirc(int enemyShotType, PhysicsObject physics);
 void removePlayerShot(int shotID);
+void removeEnemyShot(int shotID);
 
 #endif

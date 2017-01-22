@@ -5,7 +5,7 @@
 
 script* loadStageScript(char* path);
 void unloadStageScript(script * this);
-void updateStageScript(script * this, double deltaTime);
+ScriptResult updateStageScript(script * this);
 ScriptDrawingData getStageScriptDrawingData(script * this);
 
 #endif

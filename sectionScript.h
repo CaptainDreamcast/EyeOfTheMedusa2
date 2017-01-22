@@ -1,11 +1,11 @@
 #ifndef SECTIONSCRIPT_H
 #define SECTIONSCRIPT_H
 
-#include "scriptBase.h"
+#include "script.h"
 
 script* loadSectionScript(char* path);
 void unloadSectionScript(script * this);
-void updateSectionScript(script * this, double deltaTime);
+ScriptResult updateSectionScript(script * this);
 ScriptDrawingData getSectionScriptDrawingData(script * this);
 
 #endif

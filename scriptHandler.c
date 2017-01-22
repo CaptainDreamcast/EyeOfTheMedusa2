@@ -5,7 +5,7 @@
 #include <tari/file.h>
 
 #include "script.h"
-
+#include "scriptTypes.h"
 
 script* mainScript;
 
@@ -45,8 +45,7 @@ void setupScripts(ScriptData* sData, char* mainScriptPath){
 
 }
 void updateScripts(ScriptData* sData){
-	double timeDelta = getInverseFramerateFactor();
-	mainScript->func.update(mainScript, timeDelta);
+	mainScript->func.update(mainScript);
 }
 
 void drawScripts(ScriptData* sData){
