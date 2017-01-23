@@ -1,14 +1,18 @@
 #include "player.h"
 
 #include <tari/input.h>
+#include <tari/log.h>
+#include <tari/system.h>
 
 #include "collision.h"
+
 
 #define SCREEN_SIZE_X 640
 #define SCREEN_SIZE_Y 480
 
+#define PLAYER_Z 5
 
-PlayerData* gData;
+static PlayerData* gData;
 
 void playerHit(int shotID, CollisionType otherShotType){
 	(void) shotID;
@@ -16,22 +20,64 @@ void playerHit(int shotID, CollisionType otherShotType){
 	
 }
 
+void loadPlayerBombTexture(PlayerData* pData){
+	pData->bomb.textures[0] = loadTexturePKG("/sprites/bomb1.pkg");
+	pData->bomb.animation.mFrameAmount = 1;	
+}
+
+void loadPlayerShotFire(PlayerShotFire* fData){	
+	resetPhysicsObject(&fData->physics);
+	fData->physics.mPosition.x = 5;
+	fData->physics.mVelocity.x = 5;
+	fData->col = makeCollisionCirc(makePosition(0,0,0), 20);
+	fData->animation = createEmptyAnimation();
+	fData->animation.mFrameAmount = 2;
+	fData->animation.mDuration = 5;
+	fData->textures[0] = loadTexturePKG("/sprites/fire1.pkg");
+	fData->textures[1] = loadTexturePKG("/sprites/fire2.pkg");	
+	fData->duration[0] = 5;
+	fData->duration[1] = 10;
+	fData->duration[2] = 5;
+	fData->duration[3] = 1;
+}
+
+void loadPlayerShots(PlayerData* pData){
+	PlayerShotData* sData = &pData->shots;
+	sData->now = 0;
+	sData->currentType = PLAYER_SHOT_FIRE;
+	sData->fireLevel = 3;
+	loadPlayerShotFire(&sData->fire);
+	// TODO: LASER
+	sData->laserLevel = 0;
+	// TODO: HOMING
+	sData->homingLevel = 0;	
+}
+
+void loadPlayerTextures(PlayerData* pData){
+	pData->animation = createEmptyAnimation();
+	pData->animation.mFrameAmount = 1;
+	pData->textures[0] = loadTexturePKG("/sprites/kat1.pkg");
+	pData->texturePosition = makeRectangle(0, 0, pData->textures[0].mTextureSize.x - 1, pData->textures[0].mTextureSize.y - 1);
+}
+
 void setupPlayer(PlayerData* pData){
+	pData->lifeAmount = 3;
 	resetPhysicsObject(&pData->physics);
+	pData->physics.mPosition.x = 100;
+	pData->physics.mPosition.y = 100;
+	pData->physics.mPosition.z = PLAYER_Z;
 	pData->col = makeCollisionObjectCirc(makePosition(0, 0, 0), 0, &pData->physics);
 	pData->isFocused = 0;
 	pData->bomb.amount = 2;
 	pData->bomb.active = 0;
-	resetAnimation(&pData->bomb.animation);
+	pData->bomb.animation = createEmptyAnimation();
 	resetPhysicsObject(&pData->bomb.physics);
-	pData->bomb.col = makeCollisionObjectRect(makePosition(0,0,0), makePosition(SCREEN_SIZE_X, SCREEN_SIZE_Y, 0), &pData->bomb.physics);
+	pData->bomb.col = makeCollisionRect(makePosition(0,0,0), makePosition(SCREEN_SIZE_X, SCREEN_SIZE_Y, 0));
 	pData->bomb.shotID = -1;
-	(void) pData->bomb.textures; // TODO	
-	(void) pData->shots; //TODO
+	loadPlayerBombTexture(pData);
+	loadPlayerShots(pData);
 	
-	resetAnimation(&pData->animation);
-	(void) pData->textures; // TODO
-	pData->texturePosition = makeRectangle(0, 0, pData->textures[0].mTextureSize.x, pData->textures[0].mTextureSize.y);
+	loadPlayerTextures(pData);
 
 	pData->collisionID = addPlayerCirc(&pData->col, playerHit);
 
@@ -40,28 +86,30 @@ void setupPlayer(PlayerData* pData){
 }
 
 void moveLeft(){
-	gData->physics.mAcceleration.x = -1;
+	gData->physics.mVelocity.x = -1;
 }
 
 void moveRight(){
-	gData->physics.mAcceleration.x = 1;
+	gData->physics.mVelocity.x = 1;
 }
 
 void moveUp() {
-	gData->physics.mAcceleration.y = -1;
+	gData->physics.mVelocity.y = -1;
 }
 
 void moveDown() {
-	gData->physics.mAcceleration.y = 1;
+	gData->physics.mVelocity.y = 1;
 }
 
 void normalizeMovement(){
-	gData->physics.mAcceleration = normalizeVelocity(gData->physics.mAcceleration);
-	
+	if(vecLength(gData->physics.mVelocity) > 0){
+		gData->physics.mVelocity = normalizeVelocity(gData->physics.mVelocity);
+	}
+
 	if(gData->isFocused){
-		gData->physics.mAcceleration = vecScale(gData->physics.mAcceleration, 1);
+		gData->physics.mVelocity = vecScale(gData->physics.mVelocity, 1);
 	} else {
-		gData->physics.mAcceleration = vecScale(gData->physics.mAcceleration, 3);
+		gData->physics.mVelocity = vecScale(gData->physics.mVelocity, 3);
 	}
 }
 
@@ -89,7 +137,7 @@ void usePlayerBomb(){
 	if(gData->bomb.active) return;
 
 	gData->bomb.active = 1;
-	gData->bomb.shotID = addPlayerShotRect(&gData->bomb.col, &gData->bomb.physics, &gData->bomb.animation, gData->bomb.textures, actionAfterBombHitsEnemy);
+	gData->bomb.shotID = addPlayerShotRect(gData->bomb.col, gData->bomb.physics, gData->bomb.animation, gData->bomb.textures, actionAfterBombHitsEnemy);
 	gData->bomb.amount--;
 }
 
@@ -101,12 +149,37 @@ void fireActionAfter(int shotID, CollisionType otherShotType){
 
 void updatePlayerShot(){
 	PlayerShotData* sData = &gData->shots;
-	if(handleDurationAndCheckIfOver(&sData->now, sData->duration)){
+	Duration duration = 0;
+	if(sData->currentType == PLAYER_SHOT_FIRE){
+			int level = sData->fireLevel;
+			duration = sData->fire.duration[level];
+	} else {
+		logError("Invalid Player shot type.");
+		logErrorInteger(sData->currentType);
+		abortSystem();
+	}
+
+	if(handleDurationAndCheckIfOver(&sData->now, duration)){
 		if(sData->currentType == PLAYER_SHOT_FIRE){
 			int level = sData->fireLevel;
-			addPlayerShotCirc(&sData->fire[level].col, &sData->fire[level].physics, &sData->fire[level].animation, sData->fire[level].textures, fireActionAfter);
+			PhysicsObject pos = sData->fire.physics;
+			pos.mPosition = vecAdd(sData->fire.physics.mPosition, gData->physics.mPosition);
+			addPlayerShotCirc(sData->fire.col, pos, sData->fire.animation, sData->fire.textures, fireActionAfter);
+			if(level >= 3){
+				PhysicsObject copy = pos;
+				copy.mPosition.y -= 10;
+				addPlayerShotCirc(sData->fire.col, copy, sData->fire.animation, sData->fire.textures, fireActionAfter);
+				copy = pos;
+				copy.mPosition.y += 10;
+				addPlayerShotCirc(sData->fire.col, copy, sData->fire.animation, sData->fire.textures, fireActionAfter);
+
+			}
+		} else {
+			logError("Invalid Player shot type.");
+			logErrorInteger(sData->currentType);
 		}
 		// TODO: OTHER SHOT TYPES
+		sData->now = 0;
 	}
 }
 
@@ -115,8 +188,6 @@ void shootPlayerShot(){
 }
 
 void updatePlayer(PlayerData* pData){
-
-	updateInput();
 	if(hasPressedA()){
 		shootPlayerShot();
 	}
@@ -144,11 +215,16 @@ void updatePlayer(PlayerData* pData){
 	}
 
 	normalizeMovement();
+
+	handlePhysics(&gData->physics);
+	gData->physics.mVelocity = makePosition(0,0,0);
+
 }
 
 void drawPlayer(PlayerData* pData){
 	animate(&gData->animation);
-	drawSprite(gData->textures[gData->animation.mFrame], gData->physics.mPosition, gData->texturePosition);
+	
+	drawSprite(gData->textures[gData->animation.mFrame], gData->physics.mPosition, gData->texturePosition);	
 }
 
 Position getPlayerPosition(){

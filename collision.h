@@ -37,21 +37,30 @@ typedef struct {
 	CollisionElement* last;
 } CollisionList;
 
+typedef struct {
+	TextureData collisionCircTexture;
+	TextureData collisionRectTexture;
+
+} CollisionDebugData;
+
 typedef struct{
 	CollisionList playerShots;
 	CollisionList enemyShots;
 	CollisionList enemies;
 	CollisionList player;
+	CollisionDebugData debug;
 } CollisionData;
 
 void setupCollision(CollisionData* cData);
 void updateCollision(CollisionData* cData);
 
 int addPlayerCirc(CollisionObjectCirc* col, collisionHitCB hitCB);
-int addPlayerShotRect(CollisionObjectRect* col, PhysicsObject* physics, Animation* animation, TextureData* textures, collisionHitCB hitCB);
-int addPlayerShotCirc(CollisionObjectCirc* col, PhysicsObject* physics, Animation* animation, TextureData* textures, collisionHitCB hitCB);
-int addEnemyShotCirc(CollisionObjectCirc* col, int enemyShotType, PhysicsObject physics, collisionHitCB hitCB);
+int addPlayerShotRect(CollisionRect col, PhysicsObject physics, Animation animation, TextureData* textures, collisionHitCB hitCB);
+int addPlayerShotCirc(CollisionCirc col, PhysicsObject physics, Animation animation, TextureData* textures, collisionHitCB hitCB);
+int addEnemyShotCirc(CollisionCirc col, int enemyShotType, PhysicsObject physics, collisionHitCB hitCB);
 void removePlayerShot(int shotID);
 void removeEnemyShot(int shotID);
+
+void drawCollisions(CollisionData* cData);
 
 #endif

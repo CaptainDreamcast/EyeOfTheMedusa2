@@ -1,42 +1,73 @@
 #include "gamescreen.h"
 
-GameScreenData gGameScreenData;
+#include <tari/drawing.h>
+#include <tari/log.h>
+#include <tari/input.h>
 
-void setupGameScreen(char* mainScriptPath){
+#include "shotHandler.h"
+
+static GameScreenData gGameScreenData;
+
+static void setupGameScreen(char* mainScriptPath){
+	log("Setup game screen.");
 	setupPhysics(&gGameScreenData.physics);	
+	setupShotHandling();
 	setupCollision(&gGameScreenData.collision);
 	setupPlayer(&gGameScreenData.player);
-	setupUserInterface(&gGameScreenData.userInterface);
 	setupScripts(&gGameScreenData.scripts, mainScriptPath);
+	setupUserInterface(&gGameScreenData.userInterface, &gGameScreenData.player);
 }
 
-void update(){
+static GameScreenReturnType checkIfStillRunning(){
+
+	if(hasPressedAbortFlank()) return GAMESCREEN_RETURN_ABORT;
+
+	return GAMESCREEN_RETURN_CONTINUE;
+}
+
+static GameScreenReturnType update(){
+	debugLog("Update game screen.");
+	updateInput();
 	updatePlayer(&gGameScreenData.player);
 	updateScripts(&gGameScreenData.scripts);
 	updatePhysics(&gGameScreenData.physics);
+	updateShotHandling();
 	updateCollision(&gGameScreenData.collision);
 	updateUserInterface(&gGameScreenData.userInterface);
+	
+	return checkIfStillRunning();
 }
 
-void draw(){
+static void draw(){
+	debugLog("Draw game screen.");
+	waitForScreen();
+	startDrawing();
 	drawPlayer(&gGameScreenData.player);
-	drawUserInterface(&gGameScreenData.userInterface);
-	drawScripts(&gGameScreenData.scripts);
+	drawShotHandling();
+	//drawUserInterface(&gGameScreenData.userInterface);
+	//drawScripts(&gGameScreenData.scripts);
+	//drawCollisions(&gGameScreenData.collision);
+	stopDrawing();
 }
 
-void gameScreenRoutine(){
+static GameScreenReturnType gameScreenRoutine(){
+	log("Begin game routine.");
 	int gameIsRunning = 1;
+	GameScreenReturnType ret;
+
 	while(gameIsRunning){
-		update();
+		ret = update();
 		draw();
+
+		if(ret != GAMESCREEN_RETURN_CONTINUE) gameIsRunning = 0;
 	}
+
+	return ret;
 }
 
 GameScreenReturnType startGameScreen(char* mainScriptPath){
 	
 	setupGameScreen(mainScriptPath);
 
-	gameScreenRoutine();
-
-	return GAMESCREEN_RETURN_SUCCESS;
+	return gameScreenRoutine();
 }

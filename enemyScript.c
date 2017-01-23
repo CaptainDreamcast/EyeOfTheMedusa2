@@ -44,7 +44,7 @@ void loadEnemyAssets(script* this, EnemyScriptData* data){
 	this->pointers.cur = this->pointers.loadStart;
 
 
-	resetAnimation(&data->animation);
+	data->animation = createEmptyAnimation();
 	resetPhysicsObject(&data->physics);
 	data->physics.mPosition.z = ENEMY_POSITION_Z;	
 
@@ -53,7 +53,7 @@ void loadEnemyAssets(script* this, EnemyScriptData* data){
 	while(this->pointers.cur != NULL){
 		char word[100];
 		this->pointers.cur = getNextWord(this->pointers.cur, word);
-			
+		
 		if(!strcmp("TEXTURE", word)){
 			loadEnemyTexture(this, data);
 		} else if(!strcmp("DURATION", word)){
@@ -139,6 +139,11 @@ void readNextEnemyInstruction(script* this, EnemyScriptData* data){
 			updateShotScriptBasePosition(data->shotTypes[shotType], data->physics.mPosition);
 			data->shotTypes[shotType]->func.update(data->shotTypes[shotType]);
 		}
+	} else if(!strcmp("WAIT", word)){
+		int v;
+		this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);
+		data->duration = v;
+		data->now = 0;
 	}		
 
 	this->pointers.cur = toNextInstruction(this->pointers.cur, this->pointers.mainEnd);
@@ -153,7 +158,7 @@ ScriptResult updateEnemyScript(script * this){
 	if(isEnemyWaiting(this, data)) return SCRIPT_RESULT_CONTINUE;
 	
 	int isScriptOver = this->pointers.cur == NULL;
-	if(isScriptOver) return SCRIPT_RESULT_CONTINUE;
+	if(isScriptOver) return SCRIPT_RESULT_END;
 
 	readNextEnemyInstruction(this, data);
 
@@ -165,10 +170,8 @@ ScriptResult updateEnemyScript(script * this){
 ScriptDrawingData getEnemyScriptDrawingData(script * this){
 	ScriptDrawingData ret;
 	EnemyScriptData* data = this->data;
-
 	TextureData texture = data->textures[data->animation.mFrame];
-	Rectangle rect = makeRectangle(0, 0, texture.mTextureSize.x, texture.mTextureSize.y);
-
+	Rectangle rect = makeRectangle(0, 0, texture.mTextureSize.x - 1, texture.mTextureSize.y - 1);
 	drawSprite(texture, data->physics.mPosition, rect);
 
 	return ret;

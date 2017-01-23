@@ -1,0 +1,11 @@
+LOAD {
+
+	
+
+}
+
+
+MAIN {
+	ENEMY ENEMY1 ;
+	WAIT 10 ;
+}

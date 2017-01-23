@@ -4,9 +4,7 @@
 #include <tari/texture.h>
 #include <tari/drawing.h>
 
-
-#define UI_TEXT_Z 5
-#define UI_MAIN_Z 6
+#include "player.h"
 
 typedef struct{
 
@@ -36,7 +34,7 @@ typedef struct{
 
 } UserInterfaceData;
 
-void setupUserInterface(UserInterfaceData* uData);
+void setupUserInterface(UserInterfaceData* uData, PlayerData* pData);
 void updateUserInterface(UserInterfaceData* uData);
 void drawUserInterface(UserInterfaceData* uData);
 

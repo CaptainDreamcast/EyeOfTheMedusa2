@@ -2,6 +2,9 @@
 
 #include <tari/animation.h>
 
+#include <tari/log.h>
+#include <tari/system.h>
+
 #include "enemyScript.h"
 
 typedef struct{
@@ -16,15 +19,22 @@ typedef struct{
 } SectionScriptData;
 
 void loadSectionAssets(script* this, SectionScriptData* data){
+		debugLog("Begin loading section script assets.");
+
+		data->enemyAmount = 0;
 		memset(data->isEnemyAlive, 0, sizeof data->isEnemyAlive);
+		data->curEnemy = 0;
+		data->now = 0;
+		data->duration = 0;
 
 		this->pointers.cur = this->pointers.mainStart;
+
+		
 
 		while(this->pointers.cur != NULL){
 			char word[100];
 			this->pointers.cur = getNextWord(this->pointers.cur, word);
-			int isEnemy = !strcmp("ENEMY", word);
-			if(isEnemy){
+			if(!strcmp("ENEMY", word)){
 				char scriptName[100];
 				char path[100];
 				getNextWord(this->pointers.cur, scriptName);
@@ -33,6 +43,12 @@ void loadSectionAssets(script* this, SectionScriptData* data){
 				int enemy = data->enemyAmount;
 				data->enemyAmount++;
 				data->subEnemies[enemy] = loadEnemyScript(path);
+			} else if(!strcmp("WAIT", word)){
+				// no action
+			} else {
+				logError("Unable to parse nect section word!");
+				logErrorString(word);
+				abortSystem();
 			}				
 			
 			this->pointers.cur = toNextInstruction(this->pointers.cur, this->pointers.mainEnd);
@@ -40,6 +56,8 @@ void loadSectionAssets(script* this, SectionScriptData* data){
 }
 
 script* loadSectionScript(char* path){
+	debugLog("Begin loading section script.");
+	debugString(path);
 	script* ret = malloc(sizeof(script));
 	ret->func.load = loadSectionScript;
 	ret->func.unload = unloadSectionScript;
@@ -51,9 +69,10 @@ script* loadSectionScript(char* path){
 	ret->data = malloc(sizeof(SectionScriptData));
 	SectionScriptData* data = ret->data;
 	loadSectionAssets(ret, data);
-	data->curEnemy = 0;
 
 	ret->pointers.cur = ret->pointers.mainStart;
+	
+	debugLog("Finished loading section script.");
 
 	return ret;
 }
@@ -114,6 +133,11 @@ void readNextSectionInstruction(script* this, SectionScriptData* data){
 	if(!strcmp("ENEMY", word)){
 		data->isEnemyAlive[data->curEnemy] = 1;
 		data->curEnemy++;
+	} else if(!strcmp("WAIT", word)){
+		int v;
+		this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);
+		data->duration = v;
+		data->now = 0;
 	}		
 
 	this->pointers.cur = toNextInstruction(this->pointers.cur, this->pointers.mainEnd);
@@ -122,14 +146,21 @@ void readNextSectionInstruction(script* this, SectionScriptData* data){
 ScriptResult updateSectionScript(script * this){
 	SectionScriptData* data = this->data;
 
+	debugLog("Start updating section script.");
 	if(checkIfSectionDead(this, data)) return SCRIPT_RESULT_END;
+
+	debugLog("Section script not dead.");
 
 	updateActiveSectionEnemies(this, data);
 
 	if(isSectionWaiting(this, data)) return SCRIPT_RESULT_CONTINUE;
 	
+	debugLog("Section script not waiting.");
+
 	int isScriptOver = checkIfSectionScriptOver(this);
 	if(isScriptOver) return SCRIPT_RESULT_CONTINUE;
+
+	debugLog("Section script not over.");
 
 	readNextSectionInstruction(this, data);
 

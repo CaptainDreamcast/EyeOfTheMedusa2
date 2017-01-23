@@ -2,7 +2,7 @@
 
 #include <tari/physics.h>
 
-PhysicsData* gData;
+static PhysicsData* gData;
 
 void setupPhysics(PhysicsData* pData){
 	resetPhysics();

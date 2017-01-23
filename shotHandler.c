@@ -29,19 +29,19 @@ typedef struct {
 #define SHOT_TYPE_PLAYER_L 1
 #define SHOT_TYPE_PLAYER_H 2
 
-int gShotTypeAmount;
-ShotType gShotTypes[10];
+static int gShotTypeAmount;
+static ShotType gShotTypes[10];
 
-ShotElement gShots[10000];
-ShotHandlerData gData;
+static ShotElement gShots[10000];
+static ShotHandlerData gData;
 
 
 void loadSingleShot(char* name) {
 	int id = gShotTypeAmount;
 	char path[100];
-	sprintf(path, "/assets/shots/%s.pkg", name);
+	sprintf(path, "/sprites/%s.pkg", name);
 	gShotTypes[id].textures[0] = loadTexturePKG(path);
-	resetAnimation(&gShotTypes[id].animation);
+	gShotTypes[id].animation = createEmptyAnimation();
 	gShotTypes[id].animation.mFrameAmount = 1;
 	gShotTypes[id].animation.mDuration = 1000;
 
@@ -52,7 +52,7 @@ void loadSingleShot(char* name) {
 void loadShotTypes(){
 	gShotTypeAmount = 0;
 	
-	loadSingleShot("ayaasas");
+	loadSingleShot("shot1");
 	
 }
 
@@ -94,8 +94,8 @@ void drawShotHandling(){
 	for(i = 0; i < 10000; i++){
 		if(!gShots[i].active) continue; 
 		TextureData texture = gShots[i].textures[gShots[i].animation.mFrame];
-		Rectangle rect = makeRectangle(0, 0, texture.mTextureSize.x, texture.mTextureSize.y);
-
+		Rectangle rect = makeRectangle(0, 0, texture.mTextureSize.x - 1, texture.mTextureSize.y - 1);
+		//printf("%f %f %d\n", gShots[i].physics.mPosition.x, gShots[i].physics.mPosition.y, (int)gShots[i].animation.mFrame);
 		drawSprite(texture, gShots[i].physics.mPosition, rect);
 		
 	}
@@ -103,6 +103,10 @@ void drawShotHandling(){
 
 
 PhysicsObject* addToShotHandlingInternal(int shotID, PhysicsObject physics, Animation animation, TextureData* textures, int type){
+	debugLog("Adding shot.");
+	debugInteger(shotID);
+	debugInteger(type);
+
 	gShots[shotID].active = 1;
 	gShots[shotID].id = shotID;
 	gShots[shotID].type = type;

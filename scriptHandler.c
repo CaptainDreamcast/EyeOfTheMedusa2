@@ -3,6 +3,7 @@
 #include <tari/log.h>
 #include <tari/framerate.h>
 #include <tari/file.h>
+#include <tari/system.h>
 
 #include "script.h"
 #include "scriptTypes.h"
@@ -41,6 +42,7 @@ void setupScripts(ScriptData* sData, char* mainScriptPath){
 	} else {
 		logError("Unable to identify script type");
 		logErrorString(mainScriptPath);
+		abortSystem();
 	}
 
 }
@@ -49,11 +51,7 @@ void updateScripts(ScriptData* sData){
 }
 
 void drawScripts(ScriptData* sData){
-	ScriptDrawingData dData = mainScript->func.getScriptDrawingData(mainScript);
-	int i;
-	for(i = 0; i < dData.size; i++){
-		drawSprite(dData.data[i].texture, dData.data[i].pos, dData.data[i].texturePosition);
-	}
+	mainScript->func.getScriptDrawingData(mainScript);
 }
 
 

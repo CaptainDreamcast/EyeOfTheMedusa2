@@ -13,17 +13,19 @@ typedef enum {
 
 typedef struct {
 	PhysicsObject physics;
-	CollisionObjectCirc col;
+	CollisionCirc col;
 	Animation animation;
 	TextureData textures[10];	
+	Duration duration[4];
 } PlayerShotFire;
 
 typedef struct {
 	Duration now;
-	Duration duration;
 	PlayerShotType currentType;
 	int fireLevel;
-	PlayerShotFire fire[4];
+	PlayerShotFire fire;
+	int laserLevel;
+	int homingLevel;
 } PlayerShotData;
 
 typedef struct{
@@ -31,12 +33,14 @@ typedef struct{
 	int active;
 	int shotID;
 	PhysicsObject physics;
-	CollisionObjectRect col;
+	CollisionRect col;
 	Animation animation;
 	TextureData textures[10];
 } BombData;
 
 typedef struct{
+	int lifeAmount;	
+	
 	PhysicsObject physics;
 	CollisionObjectCirc col;
 	int isFocused;

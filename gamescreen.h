@@ -8,7 +8,9 @@
 #include "userInterface.h"
 
 typedef enum {
-	GAMESCREEN_RETURN_SUCCESS
+	GAMESCREEN_RETURN_SUCCESS,
+	GAMESCREEN_RETURN_CONTINUE,
+	GAMESCREEN_RETURN_ABORT,
 } GameScreenReturnType;
 
 typedef struct {
