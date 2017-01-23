@@ -1,9 +1,0 @@
-LOAD {
-
-}
-
-MAIN {
-	STAGE STAGE01 ;
-	BOSS BOSS01 ;
-}
-
