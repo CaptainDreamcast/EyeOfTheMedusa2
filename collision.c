@@ -3,6 +3,7 @@
 #include "shotHandler.h"
 
 #include <tari/log.h>
+#include <tari/math.h>
 #include <tari/drawing.h>
 #define DEBUG_Z 1
 
@@ -41,7 +42,7 @@ void addToCollisionList(CollisionList* list, CollisionElement* obj){
 	list->size++;
 }
 
-int addToCollisionListObj(CollisionList* list, void* col, CollisionType type, collisionHitCB hitCB){
+int addToCollisionListObj(CollisionList* list, void* col, void* caller, int strength, CollisionType type, int isOwningData, collisionHitCB hitCB){
 	CollisionElement* obj = malloc(sizeof(CollisionElement));
 	obj->id = getNextShotId();
 	obj->type = type;
@@ -49,14 +50,18 @@ int addToCollisionListObj(CollisionList* list, void* col, CollisionType type, co
 	obj->data = col;
 	obj->prev = NULL;
 	obj->next = NULL;
+	obj->strength = strength;
+	obj->caller = caller;
+	obj->isScheduledForDelete = 0;
+	obj->isOwningData = isOwningData;
 	addToCollisionList(list, obj);
 	return obj->id;
 }
-int addToCollisionListRect(CollisionList* list, CollisionObjectRect* col, CollisionType type, collisionHitCB hitCB){
-	return addToCollisionListObj(list, col, type, hitCB);
+int addToCollisionListRect(CollisionList* list, CollisionObjectRect* col, void* caller, int strength, CollisionType type, int isOwningData, collisionHitCB hitCB){
+	return addToCollisionListObj(list, col, caller, strength, type, isOwningData, hitCB);
 }
-int addToCollisionListCirc(CollisionList* list, CollisionObjectCirc* col, CollisionType type, collisionHitCB hitCB){
-	return addToCollisionListObj(list, col, type, hitCB);
+int addToCollisionListCirc(CollisionList* list, CollisionObjectCirc* col, void* caller, int strength, CollisionType type, int isOwningData, collisionHitCB hitCB){
+	return addToCollisionListObj(list, col, caller, strength, type, isOwningData, hitCB);
 }
 
 void removeFromCollisionList(CollisionList* list, int shotID){
@@ -66,15 +71,32 @@ void removeFromCollisionList(CollisionList* list, int shotID){
 	int i;
 	for(i = 0; i < left; i++){
 		if(cur->id == shotID){
+			cur->isScheduledForDelete = 1;
+			return;
+		}
+		cur = cur->next;
+	}
+}
+
+void removeDeletedFromCollsionList(CollisionList* list){
+
+	int left = list->size;
+	CollisionElement* cur = list->first;
+
+	int i;
+	for(i = 0; i < left; i++){
+		CollisionElement* next = cur->next;
+		if(cur->isScheduledForDelete){
 			if(cur->prev != NULL) cur->prev->next = cur->next;
 			if(cur->next != NULL) cur->next->prev = cur->prev;
 			if(cur->prev == NULL) list->first = cur->next;
 			if(cur->next == NULL) list->last = cur->prev;
-			free(cur->data);
+			if(cur->isOwningData) free(cur->data);
 			free(cur);
-			return;
+			list->size--;
+			
 		}
-		cur = cur->next;
+		cur = next;
 	}
 }
 
@@ -108,9 +130,8 @@ void compareObjectsAndHandleCollision(CollisionElement* obj1, CollisionElement* 
 	}
 
 	if(!isCollision) return;
-
-	obj1->hitCB(obj1->id, obj2->type);
-	obj2->hitCB(obj2->id, obj1->type);
+	obj1->hitCB(obj1->caller, obj1->id, obj2->strength);
+	obj2->hitCB(obj2->caller, obj2->id, obj1->strength);
 }
 
 void compareCollisionListToObject(CollisionList* list, CollisionElement* obj){
@@ -133,6 +154,9 @@ void compareCollisionLists(CollisionList* list1, CollisionList* list2){
 		compareCollisionListToObject(list2, cur);
 		cur = cur->next;
 	}
+
+	removeDeletedFromCollsionList(list1);
+	removeDeletedFromCollsionList(list2);
 }
 
 void updateCollision(CollisionData* cData){
@@ -140,25 +164,33 @@ void updateCollision(CollisionData* cData){
 	compareCollisionLists(&gData->enemyShots, &gData->player);
 }
 
-int addPlayerCirc(CollisionObjectCirc* col, collisionHitCB hitCB){
-	int shotID = addToCollisionListCirc(&gData->player, col, COLLISION_PLAYER, hitCB);
+static int addHittableCirc(CollisionObjectCirc* col, void* caller, int strength, collisionHitCB hitCB, int listType, CollisionList* list){
+	int shotID = addToCollisionListCirc(list, col, caller, strength, COLLISION_OBJECT_CIRC, 0, hitCB);
 	return shotID;
 }
 
-int addPlayerShotRect(CollisionRect col, PhysicsObject physics, Animation animation, TextureData* textures, collisionHitCB hitCB){
+int addPlayerCirc(void* caller, CollisionObjectCirc* col, collisionHitCB hitCB){
+	return addHittableCirc(col, caller, 0, hitCB, COLLISION_PLAYER, &gData->player);
+}
+
+int addEnemyCirc(void* caller, CollisionObjectCirc* col, collisionHitCB hitCB){
+	return addHittableCirc(col, caller, INF, hitCB, COLLISION_ENEMY, &gData->enemies);
+}
+
+int addPlayerShotRect(void* caller, int strength, CollisionRect col, PhysicsObject physics, Animation animation, TextureData* textures, collisionHitCB hitCB){
 	CollisionObjectRect* colObj = malloc(sizeof(CollisionObjectRect));
 	(*colObj) = makeCollisionObjectRect(col.mTopLeft, col.mBottomRight, NULL);
-	int shotID = addToCollisionListRect(&gData->playerShots, colObj, COLLISION_PLAYER_SHOT, hitCB);
+	int shotID = addToCollisionListRect(&gData->playerShots, colObj, caller, strength, COLLISION_OBJECT_RECT, 1, hitCB);
 	PhysicsObject* p2 = addToShotHandling(shotID, physics, animation, textures);
 	colObj->mPhysics = p2;
 	return shotID;
 }
 
-int addPlayerShotCirc(CollisionCirc col, PhysicsObject physics, Animation animation, TextureData* textures, collisionHitCB hitCB){
+int addPlayerShotCirc(void* caller, int strength, CollisionCirc col, PhysicsObject physics, Animation animation, TextureData* textures, collisionHitCB hitCB){
 	debugLog("Adding player shot");
 	CollisionObjectCirc* colObj = malloc(sizeof(CollisionObjectCirc));
 	(*colObj) = makeCollisionObjectCirc(col.mCenter, col.mRadius, NULL);
-	int shotID = addToCollisionListCirc(&gData->playerShots, colObj, COLLISION_PLAYER_SHOT, hitCB);
+	int shotID = addToCollisionListCirc(&gData->playerShots, colObj, caller, strength, COLLISION_OBJECT_CIRC, 1, hitCB);
 	PhysicsObject* p2 = addToShotHandling(shotID, physics, animation, textures);
 	colObj->mPhysics = p2;
 
@@ -168,10 +200,10 @@ int addPlayerShotCirc(CollisionCirc col, PhysicsObject physics, Animation animat
 	return shotID;
 }
 
-int addEnemyShotCirc(CollisionCirc col, int enemyShotType, PhysicsObject physics, collisionHitCB hitCB){
+int addEnemyShotCirc(void* caller, int strength, CollisionCirc col, int enemyShotType, PhysicsObject physics, collisionHitCB hitCB){
 	CollisionObjectCirc* colObj = malloc(sizeof(CollisionObjectCirc));
 	(*colObj) = makeCollisionObjectCirc(col.mCenter, col.mRadius, NULL);
-	int shotID = addToCollisionListCirc(&gData->enemyShots, colObj, COLLISION_ENEMY_SHOT, hitCB);
+	int shotID = addToCollisionListCirc(&gData->enemyShots, colObj, caller, strength, COLLISION_OBJECT_CIRC, 1, hitCB);
 	PhysicsObject* p2 = addToShotHandlingType(shotID, physics, enemyShotType);
 	colObj->mPhysics = p2;
 	return shotID;
@@ -187,12 +219,17 @@ void removeEnemyShot(int shotID){
 	removeFromShotHandling(shotID);
 }
 
+void removeEnemy(int shotID){
+	removeFromCollisionList(&gData->enemies, shotID);
+}
+
 void drawColCirc(CollisionObjectCirc* obj){
 	double r = obj->mCol.mRadius;
-	Position position = vecAdd(obj->mCol.mCenter, obj->mPhysics->mPosition);
+	CollisionCirc c = adjustCollisionObjectCirc(obj);
+	Position position = c.mCenter;
 	position.z = DEBUG_Z;
 	position = vecAdd(position, makePosition(-r, -r, 0));
-
+	
 	scaleDrawing(r / 8.0, position);
 	drawSprite(gData->debug.collisionCircTexture, position, makeRectangleFromTexture(gData->debug.collisionCircTexture));
 	setDrawingParametersToIdentity();
@@ -232,7 +269,7 @@ void drawCollisionList(CollisionList* list){
 	CollisionElement* cur = list->first;
 
 	int i;
-	for(i = 0; i < left; i++){
+	for(i = 0; i < left; i++){	
 		drawCollisionElement(cur);
 		cur = cur->next;
 	}

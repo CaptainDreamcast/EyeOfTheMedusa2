@@ -16,6 +16,7 @@ typedef struct{
 	int isAngle;
 	int angle;
 	int speed;
+	int strength;
 	PhysicsObject physics;
 	PhysicsObject randomization;
 	Position basePosition;
@@ -30,6 +31,7 @@ void loadShotAssets(script* this, ShotScriptData* data){
 	data->isTowardsPlayer = 0;
 	data->isAngle = 0;
 	data->angle = 0;
+	data->strength = INF;
 	resetPhysicsObject(&data->physics);
 	resetPhysicsObject(&data->randomization);
 	data->physics.mPosition.z = ENEMY_SHOT_POSITION_Z;	
@@ -95,6 +97,8 @@ void loadShotAssets(script* this, ShotScriptData* data){
 			int v;
 			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);
 			data->col.mRadius = v;
+		} else if(!strcmp("STRENGTH", word)){
+			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &data->strength);
 		}
 
 		this->pointers.cur = toNextInstruction(this->pointers.cur, this->pointers.loadEnd);
@@ -133,8 +137,9 @@ Position variatePosition(Position base){
 	return ret;
 }
 
-void removeShotScriptShot(int shotID, CollisionType otherShotType){
-	(void) otherShotType;
+void removeShotScriptShot(void* this, int shotID, int strength){
+	(void) this;
+	(void) strength;
 	removeEnemyShot(shotID);
 }
 
@@ -169,7 +174,7 @@ ScriptResult updateShotScript(script * this){
 	addition = variatePosition(data->randomization.mAcceleration);
 	physics.mAcceleration = vecAdd(data->physics.mVelocity, addition);
 	
-	addEnemyShotCirc(data->col, data->shotType, physics, removeShotScriptShot);
+	addEnemyShotCirc((void*)this, data->strength, data->col, data->shotType, physics, removeShotScriptShot);
 
 	return SCRIPT_RESULT_END;
 }

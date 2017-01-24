@@ -95,7 +95,6 @@ void drawShotHandling(){
 		if(!gShots[i].active) continue; 
 		TextureData texture = gShots[i].textures[gShots[i].animation.mFrame];
 		Rectangle rect = makeRectangle(0, 0, texture.mTextureSize.x - 1, texture.mTextureSize.y - 1);
-		//printf("%f %f %d\n", gShots[i].physics.mPosition.x, gShots[i].physics.mPosition.y, (int)gShots[i].animation.mFrame);
 		drawSprite(texture, gShots[i].physics.mPosition, rect);
 		
 	}

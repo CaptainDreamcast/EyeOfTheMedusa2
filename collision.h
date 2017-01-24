@@ -18,13 +18,17 @@ typedef enum  {
 	COLLISION_OBJECT_RECT,
 } CollisionObjectType;
 
-typedef void (*collisionHitCB)(int shotID, CollisionType otherShotType);
+typedef void (*collisionHitCB)(void* this, int shotID, int strength);
 
 typedef struct CollisionElement_internal{
 	int id;
-	int type;
+	CollisionObjectType type;
 	void* data;
+	void* caller;
+	int strength;
 	collisionHitCB hitCB;
+	int isScheduledForDelete;
+	int isOwningData;
 	
 	struct CollisionElement_internal* next;
 	struct CollisionElement_internal* prev;
@@ -54,12 +58,15 @@ typedef struct{
 void setupCollision(CollisionData* cData);
 void updateCollision(CollisionData* cData);
 
-int addPlayerCirc(CollisionObjectCirc* col, collisionHitCB hitCB);
-int addPlayerShotRect(CollisionRect col, PhysicsObject physics, Animation animation, TextureData* textures, collisionHitCB hitCB);
-int addPlayerShotCirc(CollisionCirc col, PhysicsObject physics, Animation animation, TextureData* textures, collisionHitCB hitCB);
-int addEnemyShotCirc(CollisionCirc col, int enemyShotType, PhysicsObject physics, collisionHitCB hitCB);
+int addPlayerCirc(void* caller, CollisionObjectCirc* col, collisionHitCB hitCB);
+int addEnemyCirc(void* caller, CollisionObjectCirc* col, collisionHitCB hitCB);
+
+int addPlayerShotRect(void* caller, int strength, CollisionRect col, PhysicsObject physics, Animation animation, TextureData* textures, collisionHitCB hitCB);
+int addPlayerShotCirc(void* caller, int strength, CollisionCirc col, PhysicsObject physics, Animation animation, TextureData* textures, collisionHitCB hitCB);
+int addEnemyShotCirc(void* caller, int strength, CollisionCirc col, int enemyShotType, PhysicsObject physics, collisionHitCB hitCB);
 void removePlayerShot(int shotID);
 void removeEnemyShot(int shotID);
+void removeEnemy(int shotID);
 
 void drawCollisions(CollisionData* cData);
 

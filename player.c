@@ -3,6 +3,7 @@
 #include <tari/input.h>
 #include <tari/log.h>
 #include <tari/system.h>
+#include <tari/math.h>
 
 #include "collision.h"
 
@@ -14,9 +15,10 @@
 
 static PlayerData* gData;
 
-void playerHit(int shotID, CollisionType otherShotType){
+void playerHit(void* this, int shotID, int strength){
+	(void) this;
 	(void) shotID;
-	(void) otherShotType;
+	(void) strength;
 	
 }
 
@@ -27,6 +29,7 @@ void loadPlayerBombTexture(PlayerData* pData){
 
 void loadPlayerShotFire(PlayerShotFire* fData){	
 	resetPhysicsObject(&fData->physics);
+	fData->strength = 100;
 	fData->physics.mPosition.x = 5;
 	fData->physics.mVelocity.x = 5;
 	fData->col = makeCollisionCirc(makePosition(0,0,0), 20);
@@ -35,7 +38,7 @@ void loadPlayerShotFire(PlayerShotFire* fData){
 	fData->animation.mDuration = 5;
 	fData->textures[0] = loadTexturePKG("/sprites/fire1.pkg");
 	fData->textures[1] = loadTexturePKG("/sprites/fire2.pkg");	
-	fData->duration[0] = 5;
+	fData->duration[0] = 10;
 	fData->duration[1] = 10;
 	fData->duration[2] = 5;
 	fData->duration[3] = 1;
@@ -45,7 +48,7 @@ void loadPlayerShots(PlayerData* pData){
 	PlayerShotData* sData = &pData->shots;
 	sData->now = 0;
 	sData->currentType = PLAYER_SHOT_FIRE;
-	sData->fireLevel = 3;
+	sData->fireLevel = 0;
 	loadPlayerShotFire(&sData->fire);
 	// TODO: LASER
 	sData->laserLevel = 0;
@@ -66,7 +69,7 @@ void setupPlayer(PlayerData* pData){
 	pData->physics.mPosition.x = 100;
 	pData->physics.mPosition.y = 100;
 	pData->physics.mPosition.z = PLAYER_Z;
-	pData->col = makeCollisionObjectCirc(makePosition(0, 0, 0), 0, &pData->physics);
+	pData->col = makeCollisionObjectCirc(makePosition(10, 10, 0), 32, &pData->physics);
 	pData->isFocused = 0;
 	pData->bomb.amount = 2;
 	pData->bomb.active = 0;
@@ -79,7 +82,7 @@ void setupPlayer(PlayerData* pData){
 	
 	loadPlayerTextures(pData);
 
-	pData->collisionID = addPlayerCirc(&pData->col, playerHit);
+	pData->collisionID = addPlayerCirc((void*)pData, &pData->col, playerHit);
 
 	gData = pData;
 	
@@ -127,9 +130,10 @@ void shutdownBomb(){
 	resetAnimation(&gData->bomb.animation);
 }
 
-void actionAfterBombHitsEnemy(int shotID, CollisionType otherShotType){
+void actionAfterBombHitsEnemy(void* this, int shotID, int strength){
+	(void) this;
 	(void) shotID;
-	(void) otherShotType;
+	(void) strength;
 }
 
 void usePlayerBomb(){
@@ -137,12 +141,13 @@ void usePlayerBomb(){
 	if(gData->bomb.active) return;
 
 	gData->bomb.active = 1;
-	gData->bomb.shotID = addPlayerShotRect(gData->bomb.col, gData->bomb.physics, gData->bomb.animation, gData->bomb.textures, actionAfterBombHitsEnemy);
+	gData->bomb.shotID = addPlayerShotRect((void*)gData, INF, gData->bomb.col, gData->bomb.physics, gData->bomb.animation, gData->bomb.textures, actionAfterBombHitsEnemy);
 	gData->bomb.amount--;
 }
 
-void fireActionAfter(int shotID, CollisionType otherShotType){
-	(void) otherShotType;
+void fireActionAfter(void* this, int shotID, int strength){
+	(void) this;
+	(void) strength;
 	removePlayerShot(shotID);
 	
 }
@@ -164,14 +169,14 @@ void updatePlayerShot(){
 			int level = sData->fireLevel;
 			PhysicsObject pos = sData->fire.physics;
 			pos.mPosition = vecAdd(sData->fire.physics.mPosition, gData->physics.mPosition);
-			addPlayerShotCirc(sData->fire.col, pos, sData->fire.animation, sData->fire.textures, fireActionAfter);
+			addPlayerShotCirc((void*)gData, sData->fire.strength, sData->fire.col, pos, sData->fire.animation, sData->fire.textures, fireActionAfter);
 			if(level >= 3){
 				PhysicsObject copy = pos;
 				copy.mPosition.y -= 10;
-				addPlayerShotCirc(sData->fire.col, copy, sData->fire.animation, sData->fire.textures, fireActionAfter);
+				addPlayerShotCirc((void*)gData, sData->fire.strength, sData->fire.col, copy, sData->fire.animation, sData->fire.textures, fireActionAfter);
 				copy = pos;
 				copy.mPosition.y += 10;
-				addPlayerShotCirc(sData->fire.col, copy, sData->fire.animation, sData->fire.textures, fireActionAfter);
+				addPlayerShotCirc((void*)gData, sData->fire.strength, sData->fire.col, copy, sData->fire.animation, sData->fire.textures, fireActionAfter);
 
 			}
 		} else {

@@ -132,6 +132,7 @@ void readNextSectionInstruction(script* this, SectionScriptData* data){
 	this->pointers.cur = getNextWord(this->pointers.cur, word);
 	if(!strcmp("ENEMY", word)){
 		data->isEnemyAlive[data->curEnemy] = 1;
+		vitalizeEnemy(data->subEnemies[data->curEnemy]);
 		data->curEnemy++;
 	} else if(!strcmp("WAIT", word)){
 		int v;

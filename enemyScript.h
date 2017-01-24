@@ -7,5 +7,6 @@ script* loadEnemyScript(char* path);
 void unloadEnemyScript(script * this);
 ScriptResult updateEnemyScript(script * this);
 ScriptDrawingData getEnemyScriptDrawingData(script * this);
+void vitalizeEnemy(script* this);
 
 #endif

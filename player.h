@@ -12,6 +12,7 @@ typedef enum {
 } PlayerShotType;
 
 typedef struct {
+	int strength;
 	PhysicsObject physics;
 	CollisionCirc col;
 	Animation animation;

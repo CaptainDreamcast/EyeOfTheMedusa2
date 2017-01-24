@@ -45,8 +45,8 @@ static void draw(){
 	drawPlayer(&gGameScreenData.player);
 	drawShotHandling();
 	//drawUserInterface(&gGameScreenData.userInterface);
-	//drawScripts(&gGameScreenData.scripts);
-	//drawCollisions(&gGameScreenData.collision);
+	drawScripts(&gGameScreenData.scripts);
+	drawCollisions(&gGameScreenData.collision);
 	stopDrawing();
 }
 

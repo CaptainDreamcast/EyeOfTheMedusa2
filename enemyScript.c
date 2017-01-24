@@ -1,8 +1,10 @@
 #include "enemyScript.h"
 
 #include <tari/animation.h>
+#include <tari/collision.h>
 
 #include "shotScript.h"
+#include "collision.h"
 
 #define ENEMY_POSITION_Z 5
 
@@ -10,9 +12,13 @@ typedef struct{
 	Animation animation;
 	TextureData textures[10];
 	PhysicsObject physics;
+	CollisionObjectCirc col;
 
 	int shotAmount;
 	script* shotTypes[10];
+
+	int shotID;
+	int health;
 
 	Duration duration;	
 	Duration now;
@@ -47,6 +53,9 @@ void loadEnemyAssets(script* this, EnemyScriptData* data){
 	data->animation = createEmptyAnimation();
 	resetPhysicsObject(&data->physics);
 	data->physics.mPosition.z = ENEMY_POSITION_Z;	
+	data->col = makeCollisionObjectCirc(makePosition(0, 0, 0), 0, &data->physics);
+	data->shotID = -1;
+	data->health = 0;
 
 	data->shotAmount = 0;	
 
@@ -66,8 +75,20 @@ void loadEnemyAssets(script* this, EnemyScriptData* data){
 			data->physics.mPosition.x = v;
 			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);
 			data->physics.mPosition.y = v;
-		}else if(!strcmp("SHOT", word)){
+		} else if(!strcmp("SHOT", word)){
 			loadEnemyShot(this, data);
+		} else if(!strcmp("COL_CENTER", word)){
+			int v;
+			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);
+			data->col.mCol.mCenter.x = v;
+			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);
+			data->col.mCol.mCenter.y = v;
+		} else if(!strcmp("COL_RADIUS", word)){
+			int v;
+			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);
+			data->col.mCol.mRadius = v;
+		}  else if(!strcmp("HEALTH", word)){
+			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &data->health);
 		}
 
 		this->pointers.cur = toNextInstruction(this->pointers.cur, this->pointers.loadEnd);
@@ -149,8 +170,19 @@ void readNextEnemyInstruction(script* this, EnemyScriptData* data){
 	this->pointers.cur = toNextInstruction(this->pointers.cur, this->pointers.mainEnd);
 }
 
+
+static void die(script* this){
+	EnemyScriptData* data = this->data;
+	removeEnemy(data->shotID);
+}
+
 ScriptResult updateEnemyScript(script * this){
 	EnemyScriptData* data = this->data;
+
+	if(data->health <= 0){
+		die(this);
+		return SCRIPT_RESULT_END;	
+	}
 
 	animate(&data->animation);
 	handlePhysics(&data->physics);
@@ -158,8 +190,10 @@ ScriptResult updateEnemyScript(script * this){
 	if(isEnemyWaiting(this, data)) return SCRIPT_RESULT_CONTINUE;
 	
 	int isScriptOver = this->pointers.cur == NULL;
-	if(isScriptOver) return SCRIPT_RESULT_END;
-
+	if(isScriptOver) {
+		die(this);
+		return SCRIPT_RESULT_END;
+	}
 	readNextEnemyInstruction(this, data);
 
 	return SCRIPT_RESULT_CONTINUE;
@@ -177,6 +211,17 @@ ScriptDrawingData getEnemyScriptDrawingData(script * this){
 	return ret;
 }
 
+void takeDamage(void* this, int shotID, int strength) {
+	script* s = (script*)this;
+	EnemyScriptData* data = s->data;
+	data->health -= strength;
+	
+}
 
+void vitalizeEnemy(script* this){
+	EnemyScriptData* data = this->data;
+	data->shotID = addEnemyCirc((void*)this, &data->col, takeDamage);
+	
 
+}
 
