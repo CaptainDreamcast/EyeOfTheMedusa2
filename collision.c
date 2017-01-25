@@ -181,7 +181,7 @@ int addPlayerShotRect(void* caller, int strength, CollisionRect col, PhysicsObje
 	CollisionObjectRect* colObj = malloc(sizeof(CollisionObjectRect));
 	(*colObj) = makeCollisionObjectRect(col.mTopLeft, col.mBottomRight, NULL);
 	int shotID = addToCollisionListRect(&gData->playerShots, colObj, caller, strength, COLLISION_OBJECT_RECT, 1, hitCB);
-	PhysicsObject* p2 = addToShotHandling(shotID, physics, animation, textures);
+	PhysicsObject* p2 = addToShotHandling(shotID, physics, animation, textures, COLOR_WHITE);
 	colObj->mPhysics = p2;
 	return shotID;
 }
@@ -191,7 +191,7 @@ int addPlayerShotCirc(void* caller, int strength, CollisionCirc col, PhysicsObje
 	CollisionObjectCirc* colObj = malloc(sizeof(CollisionObjectCirc));
 	(*colObj) = makeCollisionObjectCirc(col.mCenter, col.mRadius, NULL);
 	int shotID = addToCollisionListCirc(&gData->playerShots, colObj, caller, strength, COLLISION_OBJECT_CIRC, 1, hitCB);
-	PhysicsObject* p2 = addToShotHandling(shotID, physics, animation, textures);
+	PhysicsObject* p2 = addToShotHandling(shotID, physics, animation, textures, COLOR_WHITE);
 	colObj->mPhysics = p2;
 
 	debugInteger(shotID);
@@ -200,11 +200,11 @@ int addPlayerShotCirc(void* caller, int strength, CollisionCirc col, PhysicsObje
 	return shotID;
 }
 
-int addEnemyShotCirc(void* caller, int strength, CollisionCirc col, int enemyShotType, PhysicsObject physics, collisionHitCB hitCB){
+int addEnemyShotCirc(void* caller, int strength, CollisionCirc col, int enemyShotType, PhysicsObject physics, Color color, collisionHitCB hitCB){
 	CollisionObjectCirc* colObj = malloc(sizeof(CollisionObjectCirc));
 	(*colObj) = makeCollisionObjectCirc(col.mCenter, col.mRadius, NULL);
 	int shotID = addToCollisionListCirc(&gData->enemyShots, colObj, caller, strength, COLLISION_OBJECT_CIRC, 1, hitCB);
-	PhysicsObject* p2 = addToShotHandlingType(shotID, physics, enemyShotType);
+	PhysicsObject* p2 = addToShotHandlingType(shotID, physics, enemyShotType, color);
 	colObj->mPhysics = p2;
 	return shotID;
 }
@@ -276,6 +276,7 @@ void drawCollisionList(CollisionList* list){
 }
 
 void drawCollisions(CollisionData* cData){
+	return;
 	drawCollisionList(&gData->player);
 	drawCollisionList(&gData->playerShots);
 	drawCollisionList(&gData->enemies);

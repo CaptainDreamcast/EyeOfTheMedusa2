@@ -32,12 +32,11 @@ void loadPlayerShotFire(PlayerShotFire* fData){
 	fData->strength = 100;
 	fData->physics.mPosition.x = 5;
 	fData->physics.mVelocity.x = 5;
-	fData->col = makeCollisionCirc(makePosition(0,0,0), 20);
+	fData->col = makeCollisionCirc(makePosition(8,8,0), 8);
 	fData->animation = createEmptyAnimation();
-	fData->animation.mFrameAmount = 2;
+	fData->animation.mFrameAmount = 1;
 	fData->animation.mDuration = 5;
-	fData->textures[0] = loadTexturePKG("/sprites/fire1.pkg");
-	fData->textures[1] = loadTexturePKG("/sprites/fire2.pkg");	
+	fData->textures[0] = loadTexturePKG("/sprites/fire1.pkg");	
 	fData->duration[0] = 10;
 	fData->duration[1] = 10;
 	fData->duration[2] = 5;
@@ -69,7 +68,7 @@ void setupPlayer(PlayerData* pData){
 	pData->physics.mPosition.x = 100;
 	pData->physics.mPosition.y = 100;
 	pData->physics.mPosition.z = PLAYER_Z;
-	pData->col = makeCollisionObjectCirc(makePosition(10, 10, 0), 32, &pData->physics);
+	pData->col = makeCollisionObjectCirc(makePosition(32, 16, 0), 6, &pData->physics);
 	pData->isFocused = 0;
 	pData->bomb.amount = 2;
 	pData->bomb.active = 0;

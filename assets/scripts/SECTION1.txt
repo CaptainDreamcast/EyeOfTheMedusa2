@@ -7,5 +7,9 @@ LOAD {
 
 MAIN {
 	ENEMY ENEMY1 ;
+	WAIT 100 ;
+	
+	WAIT 100 ;
+	
 	WAIT 10 ;
 }

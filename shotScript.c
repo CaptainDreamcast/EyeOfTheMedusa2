@@ -1,8 +1,12 @@
 #include "shotScript.h"
 
 #include <math.h>
+#include <stdlib.h>
 
 #include <tari/math.h>
+#include <tari/log.h>
+#include <tari/system.h>
+#include <tari/drawing.h>
 
 #include "collision.h"
 #include "player.h"
@@ -17,12 +21,43 @@ typedef struct{
 	int angle;
 	int speed;
 	int strength;
+	int isPositionAbsolute;
+	Color color;
 	PhysicsObject physics;
 	PhysicsObject randomization;
 	Position basePosition;
 	CollisionCirc col;
 
 } ShotScriptData;
+
+Color stringToShotColor(char* s){
+	if(!strcmp("BLACK", s)){
+		return COLOR_BLACK;
+	} else if(!strcmp("RED", s)){
+		return COLOR_RED;
+	} else if(!strcmp("GREEN", s)){
+		return COLOR_GREEN;
+	} else if(!strcmp("BLUE", s)){
+		return COLOR_BLUE;
+	} else if(!strcmp("YELLOW", s)){
+		return COLOR_YELLOW;
+	} else if(!strcmp("WHITE", s)){
+		return COLOR_WHITE;
+	} else if(!strcmp("RANDOM", s)){
+		return -1;
+	} else {
+		logError("Unable to parse color.");
+		logErrorString(s);
+		abortSystem();
+	}
+
+	return COLOR_WHITE;
+}
+
+Color getRandomColor(){
+	int id = (rand() % 5) + 1;
+	return id;
+}
 
 void loadShotAssets(script* this, ShotScriptData* data){
 	this->pointers.cur = this->pointers.loadStart;
@@ -32,11 +67,13 @@ void loadShotAssets(script* this, ShotScriptData* data){
 	data->isAngle = 0;
 	data->angle = 0;
 	data->strength = INF;
+	data->isPositionAbsolute = 0;
 	resetPhysicsObject(&data->physics);
 	resetPhysicsObject(&data->randomization);
 	data->physics.mPosition.z = ENEMY_SHOT_POSITION_Z;	
 	data->basePosition = makePosition(0, 0, 0);
 	data->col = makeCollisionCirc(makePosition(0, 0, 0), 0);
+	data->color = COLOR_WHITE;
 
 	while(this->pointers.cur != NULL){
 		char word[100];
@@ -99,8 +136,16 @@ void loadShotAssets(script* this, ShotScriptData* data){
 			data->col.mRadius = v;
 		} else if(!strcmp("STRENGTH", word)){
 			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &data->strength);
-		}
-
+		} else if(!strcmp("POSITION_ABSOLUTE", word)){
+			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &data->isPositionAbsolute);
+		} else if(!strcmp("COLOR", word)){
+			this->pointers.cur = getNextWord(this->pointers.cur, word);
+			data->color = stringToShotColor(word);
+		} else {
+			logError("Unable to parse word");
+			logErrorString(word);
+			abortSystem();	
+		} 
 		this->pointers.cur = toNextInstruction(this->pointers.cur, this->pointers.loadEnd);
 	}
 
@@ -131,9 +176,9 @@ void unloadShotScript(script * this){
 
 Position variatePosition(Position base){
 	Position ret;
-	ret.x = randfrom(0, base.x);
-	ret.y = randfrom(0, base.y);
-	ret.z = randfrom(0, base.z);
+	ret.x = randfrom(-base.x, base.x);
+	ret.y = randfrom(-base.y, base.y);
+	ret.z = randfrom(-base.z, base.z);
 	return ret;
 }
 
@@ -149,7 +194,8 @@ ScriptResult updateShotScript(script * this){
 	PhysicsObject physics;
 	resetPhysicsObject(&physics);
 
-	Position p = vecAdd(data->basePosition, data->physics.mPosition);
+	Position p = data->physics.mPosition;
+	if(!data->isPositionAbsolute) p = vecAdd(data->basePosition, p);
 	Position addition = variatePosition(data->randomization.mPosition);
 	p = vecAdd(p, addition);
 	physics.mPosition = p;
@@ -168,13 +214,19 @@ ScriptResult updateShotScript(script * this){
 		physics.mVelocity = vecScale(direction, data->speed);
 	}
 
+	Color color = data->color;
+	if(color == -1){
+		color = getRandomColor();
+	}
+
 	addition = variatePosition(data->randomization.mVelocity);
-	physics.mVelocity = vecAdd(data->physics.mVelocity, addition);
+	physics.mVelocity = vecAdd(physics.mVelocity, addition);
+	physics.mVelocity = vecAdd(physics.mVelocity, data->physics.mVelocity);
 
 	addition = variatePosition(data->randomization.mAcceleration);
 	physics.mAcceleration = vecAdd(data->physics.mVelocity, addition);
 	
-	addEnemyShotCirc((void*)this, data->strength, data->col, data->shotType, physics, removeShotScriptShot);
+	addEnemyShotCirc((void*)this, data->strength, data->col, data->shotType, physics, color, removeShotScriptShot);
 
 	return SCRIPT_RESULT_END;
 }

@@ -5,6 +5,7 @@
 #include <tari/collision.h>
 #include <tari/animation.h>
 #include <tari/texture.h>
+#include <tari/drawing.h>
 
 typedef enum  {
 	COLLISION_ENEMY_SHOT,
@@ -63,7 +64,7 @@ int addEnemyCirc(void* caller, CollisionObjectCirc* col, collisionHitCB hitCB);
 
 int addPlayerShotRect(void* caller, int strength, CollisionRect col, PhysicsObject physics, Animation animation, TextureData* textures, collisionHitCB hitCB);
 int addPlayerShotCirc(void* caller, int strength, CollisionCirc col, PhysicsObject physics, Animation animation, TextureData* textures, collisionHitCB hitCB);
-int addEnemyShotCirc(void* caller, int strength, CollisionCirc col, int enemyShotType, PhysicsObject physics, collisionHitCB hitCB);
+int addEnemyShotCirc(void* caller, int strength, CollisionCirc col, int enemyShotType, PhysicsObject physics, Color color, collisionHitCB hitCB);
 void removePlayerShot(int shotID);
 void removeEnemyShot(int shotID);
 void removeEnemy(int shotID);

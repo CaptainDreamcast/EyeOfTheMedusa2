@@ -5,6 +5,7 @@
 #include <tari/input.h>
 
 #include "shotHandler.h"
+#include "gameStateLogic.h"
 
 static GameScreenData gGameScreenData;
 
@@ -16,11 +17,14 @@ static void setupGameScreen(char* mainScriptPath){
 	setupPlayer(&gGameScreenData.player);
 	setupScripts(&gGameScreenData.scripts, mainScriptPath);
 	setupUserInterface(&gGameScreenData.userInterface, &gGameScreenData.player);
+	setupGameStateLogic(&gGameScreenData.winFlag, &gGameScreenData.gameOverFlag);
 }
 
 static GameScreenReturnType checkIfStillRunning(){
 
 	if(hasPressedAbortFlank()) return GAMESCREEN_RETURN_ABORT;
+	if(gGameScreenData.winFlag) return GAMESCREEN_RETURN_SUCCESS;
+	if(gGameScreenData.gameOverFlag) return GAMESCREEN_RETURN_FAILURE;
 
 	return GAMESCREEN_RETURN_CONTINUE;
 }

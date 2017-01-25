@@ -7,6 +7,7 @@
 
 #include "script.h"
 #include "scriptTypes.h"
+#include "gameStateLogic.h"
 
 script* mainScript;
 
@@ -47,7 +48,10 @@ void setupScripts(ScriptData* sData, char* mainScriptPath){
 
 }
 void updateScripts(ScriptData* sData){
-	mainScript->func.update(mainScript);
+	ScriptResult res = mainScript->func.update(mainScript);
+	if(res == SCRIPT_RESULT_END) {
+		setGameWon();
+	}
 }
 
 void drawScripts(ScriptData* sData){

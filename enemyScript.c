@@ -20,6 +20,9 @@ typedef struct{
 	int shotID;
 	int health;
 
+	Duration lifeDuration;
+	Duration lifeNow;
+
 	Duration duration;	
 	Duration now;
 
@@ -56,6 +59,8 @@ void loadEnemyAssets(script* this, EnemyScriptData* data){
 	data->col = makeCollisionObjectCirc(makePosition(0, 0, 0), 0, &data->physics);
 	data->shotID = -1;
 	data->health = 0;
+	data->lifeDuration = 0;
+	data->lifeNow = 0;
 
 	data->shotAmount = 0;	
 
@@ -87,8 +92,12 @@ void loadEnemyAssets(script* this, EnemyScriptData* data){
 			int v;
 			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);
 			data->col.mCol.mRadius = v;
-		}  else if(!strcmp("HEALTH", word)){
+		} else if(!strcmp("HEALTH", word)){
 			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &data->health);
+		} else if(!strcmp("LIFE_TIME", word)){
+			int v;
+			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);
+			data->lifeDuration = v;
 		}
 
 		this->pointers.cur = toNextInstruction(this->pointers.cur, this->pointers.loadEnd);
@@ -148,6 +157,7 @@ int isEnemyWaiting(script* this, EnemyScriptData* data){
 void readNextEnemyInstruction(script* this, EnemyScriptData* data){
 	char word[100];
 	this->pointers.cur = getNextWord(this->pointers.cur, word);
+
 	if(!strcmp("SHOT", word)){
 		int shotType;
 		this->pointers.cur = getNextScriptInteger(this->pointers.cur, &shotType);
@@ -189,11 +199,14 @@ ScriptResult updateEnemyScript(script * this){
 
 	if(isEnemyWaiting(this, data)) return SCRIPT_RESULT_CONTINUE;
 	
-	int isScriptOver = this->pointers.cur == NULL;
+	int isScriptOver = handleDurationAndCheckIfOver(&data->lifeNow, data->lifeDuration);
 	if(isScriptOver) {
 		die(this);
 		return SCRIPT_RESULT_END;
 	}
+
+	if(this->pointers.cur == NULL) this->pointers.cur = this->pointers.mainStart;
+
 	readNextEnemyInstruction(this, data);
 
 	return SCRIPT_RESULT_CONTINUE;

@@ -1,6 +1,6 @@
 TARGET = 1ST_READ
 OBJS = main.o game.o gamescreen.o scriptHandler.o player.o collision.o physics.o userInterface.o gameScript.o script.o levelScript.o \
-scriptTypes.o stageScript.o sectionScript.o enemyScript.o shotScript.o shotHandler.o \
+scriptTypes.o stageScript.o sectionScript.o enemyScript.o shotScript.o shotHandler.o gameStateLogic.o \
 romdisk.o
 OPTFLAGS=-O3 -fomit-frame-pointer -fno-delayed-branch -DDREAMCAST -Wall -Werror
 KOS_CFLAGS+= $(OPTFLAGS)

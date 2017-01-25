@@ -9,6 +9,7 @@ typedef struct ShotElement_internal{
 	int active;
 	int id;	
 	int type;
+	Color color;
 	Animation animation;
 	PhysicsObject physics;
 	TextureData* textures;
@@ -95,13 +96,14 @@ void drawShotHandling(){
 		if(!gShots[i].active) continue; 
 		TextureData texture = gShots[i].textures[gShots[i].animation.mFrame];
 		Rectangle rect = makeRectangle(0, 0, texture.mTextureSize.x - 1, texture.mTextureSize.y - 1);
+		setDrawingBaseColor(gShots[i].color);
 		drawSprite(texture, gShots[i].physics.mPosition, rect);
-		
+		void setDrawingParametersToIdentity();
 	}
 }
 
 
-PhysicsObject* addToShotHandlingInternal(int shotID, PhysicsObject physics, Animation animation, TextureData* textures, int type){
+PhysicsObject* addToShotHandlingInternal(int shotID, PhysicsObject physics, Animation animation, TextureData* textures, int type, Color color){
 	debugLog("Adding shot.");
 	debugInteger(shotID);
 	debugInteger(type);
@@ -112,15 +114,16 @@ PhysicsObject* addToShotHandlingInternal(int shotID, PhysicsObject physics, Anim
 	gShots[shotID].physics = physics;
 	gShots[shotID].animation = animation;
 	gShots[shotID].textures = textures;
+	gShots[shotID].color = color;
 	return &gShots[shotID].physics;
 }
 
-PhysicsObject* addToShotHandling(int shotID, PhysicsObject physics, Animation animation, TextureData* textures){
-	return addToShotHandlingInternal(shotID, physics, animation, textures, -1);
+PhysicsObject* addToShotHandling(int shotID, PhysicsObject physics, Animation animation, TextureData* textures, Color color){
+	return addToShotHandlingInternal(shotID, physics, animation, textures, -1, color);
 }
 
-PhysicsObject* addToShotHandlingType(int shotID, PhysicsObject physics, int type){
-	return addToShotHandlingInternal(shotID, physics, gShotTypes[type].animation, gShotTypes[type].textures, type);
+PhysicsObject* addToShotHandlingType(int shotID, PhysicsObject physics, int type, Color color){
+	return addToShotHandlingInternal(shotID, physics, gShotTypes[type].animation, gShotTypes[type].textures, type, color);
 }
 
 
