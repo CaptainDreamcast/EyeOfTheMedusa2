@@ -4,3 +4,5 @@
 romdisk_boot
 *.img
 dc-tool_medusa
+*.kmg
+*.pkg
