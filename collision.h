@@ -77,7 +77,7 @@ void removeEnemyShot(int shotID);
 void removeItem(int shotID);
 void removeEnemy(int shotID);
 void removePlayer(int shotID, int shotIDCollection);
-
+void removeAllEnemyShots();
 
 void setDoNotDrawPlayerFocus();
 void setDrawPlayerFocus();

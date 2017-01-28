@@ -48,7 +48,6 @@ static void shutdownScreen(){
 }
 
 static void drawBackground() {
-	return;
 	Rectangle r = makeRectangleFromTexture(gData.background);
 	drawSprite(gData.background, makePosition(0, 0, BACKGROUND_Z), r);
 }

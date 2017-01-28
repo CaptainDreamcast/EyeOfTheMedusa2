@@ -4,6 +4,7 @@
 #include <tari/log.h>
 #include <tari/system.h>
 #include <tari/math.h>
+#include <tari/timer.h>
 
 #include "collision.h"
 #include "gameStateLogic.h"
@@ -15,7 +16,6 @@
 
 static PlayerData* gData;
 
-static void setVisible();
 
 static void focusPlayer(){
 	gData->isFocused = 1;
@@ -27,17 +27,29 @@ static void unfocusPlayer(){
 	setDoNotDrawPlayerFocus(); 
 }
 
+static void setVisible() {
+	gData->isInvisible = 0;
+}
+
 static void setInvisible(){
 	gData->isInvisible = 1;
 	removePlayer(gData->collisionID, gData->collectionID);
 	unfocusPlayer();
 }
 
+static void setVulnerable(void* caller); 
+
+static void setInvincible() {
+	gData->isInvincible = 1;
+}
+
 static void finishGame(void* this){
 	if(!gData->lifeAmount){
 		setGameLost();
 	} else {
+		setInvincible();
 		setVisible();
+		addTimerCB(60, setVulnerable, NULL);
 	}
 }
 
@@ -74,8 +86,8 @@ void playerHit(void* this, int shotID, int strength){
 	}
 }
 
-static void setVisible() {
-	gData->isInvisible = 0;
+static void setVulnerable(void* caller) {
+	gData->isInvincible = 0;
 	gData->collisionID = addPlayerCirc((void*)gData, &gData->col, playerHit);
 	gData->collectionID = addPlayerCollectCirc((void*)gData, &gData->colCollection, playerHit);
 }
@@ -94,7 +106,6 @@ void unloadPlayerBombTexture(PlayerData* pData){
 
 void loadPlayerShotFire(PlayerShotFire* fData){	
 	resetPhysicsObject(&fData->physics);
-	gData->isInvisible = 0;
 	fData->strength = 100;
 	fData->physics.mPosition.x = 5;
 	fData->physics.mVelocity.x = 5;
@@ -155,6 +166,8 @@ void unloadPlayerTextures(PlayerData* pData){
 
 void setupPlayer(PlayerData* pData){
 	pData->lifeAmount = 3;
+	pData->isInvisible = 0;
+	pData->isInvincible = 0;
 	resetPhysicsObject(&pData->physics);
 	pData->physics.mPosition.x = 100;
 	pData->physics.mPosition.y = 100;
@@ -215,7 +228,7 @@ void normalizeMovement(){
 	}
 }
 
-void shutdownBomb(){
+void shutdownBomb(void* caller){
 	gData->bomb.active = 0;
 	removePlayerShot(gData->bomb.shotID);
 	resetAnimation(&gData->bomb.animation);
@@ -234,6 +247,10 @@ void usePlayerBomb(){
 	gData->bomb.active = 1;
 	gData->bomb.shotID = addPlayerShotRect((void*)gData, INF, gData->bomb.col, gData->bomb.physics, gData->bomb.animation, gData->bomb.textures, actionAfterBombHitsEnemy);
 	gData->bomb.amount--;
+
+	removeAllEnemyShots();
+
+	addTimerCB(120, shutdownBomb, NULL);
 }
 
 void fireActionAfter(void* this, int shotID, int strength){
@@ -319,7 +336,7 @@ void updatePlayer(PlayerData* pData){
 	gData->physics.mPosition.x = max(0, gData->physics.mPosition.x);
 	gData->physics.mPosition.x = min(640-20, gData->physics.mPosition.x);
 	gData->physics.mPosition.y = max(0, gData->physics.mPosition.y);
-	gData->physics.mPosition.y = min(480-22, gData->physics.mPosition.y);
+	gData->physics.mPosition.y = min(380-22, gData->physics.mPosition.y);
 	
 
 }
@@ -328,7 +345,11 @@ void drawPlayer(PlayerData* pData){
 	if(pData->isInvisible) return;
 	animate(&gData->animation);
 	
-	drawSprite(gData->textures[gData->animation.mFrame], gData->physics.mPosition, gData->texturePosition);	
+	if(pData->isInvincible) {
+		setDrawingTransparency(0.4);
+	}
+	drawSprite(gData->textures[gData->animation.mFrame], gData->physics.mPosition, gData->texturePosition);
+	setDrawingParametersToIdentity();	
 }
 
 Position getPlayerPosition(){

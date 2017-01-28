@@ -323,6 +323,22 @@ void removePlayer(int shotID, int shotIDCollection){
 	removeFromCollisionList(&gData->playerCollection, shotIDCollection);
 }
 
+static void removeAllEnemyShotsFromShotHandling(CollisionList* list) {
+	int left = list->size;
+	CollisionElement* cur = list->first;
+
+	int i;
+	for(i = 0; i < left; i++){
+		removeFromShotHandling(cur->id);
+		cur = cur->next;
+	}
+}
+
+void removeAllEnemyShots() {
+	removeAllEnemyShotsFromShotHandling(&gData->enemyShots);
+	emptyList(&gData->enemyShots);
+}
+
 void drawColCirc(CollisionObjectCirc* obj){
 	double r = obj->mCol.mRadius;
 	CollisionCirc c = adjustCollisionObjectCirc(obj);
@@ -387,6 +403,7 @@ void drawCollisions(CollisionData* cData){
 	if(gData->isPlayerFocused){
 		drawCollisionList(&gData->player);
 	}	
+	
 	return;
 	drawCollisionList(&gData->playerShots);
 	drawCollisionList(&gData->enemies);

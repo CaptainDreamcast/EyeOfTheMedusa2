@@ -2,34 +2,21 @@
 
 static UserInterfaceData* gData;
 
-#define GUI_LOWER_Z 3
-#define GUI_UPPER_Z 2
+#define GUI_LOWER_Z 11
+#define GUI_UPPER_Z 12
 
 
 void setupUserInterface(UserInterfaceData* uData, PlayerData* pData){	
 
 	uData->bombAmount = &pData->bomb.amount;
 	uData->bombTexture = loadTexturePKG("/sprites/bomb_UI.pkg");
-	uData->bombPosition = makePosition(100, 100, GUI_UPPER_Z);
-	
+
 	uData->lifeAmount = &pData->lifeAmount;
 	uData->lifeTexture = loadTexturePKG("/sprites/life_UI.pkg");
-	uData->lifePosition = makePosition(150, 100, GUI_UPPER_Z);
-	
-	uData->UITexture = loadTexturePKG("/sprites/main_UI.pkg");
 
-	uData->score = 0;
-	uData->scorePosition = makePosition(200, 100, GUI_UPPER_Z);
+	uData->UITexture = loadTexturePKG("/sprites/white.pkg");
 
 	uData->fireEnergy = &pData->shots.fireLevel;
-	uData->fireEnergyPosition = makePosition(250, 100, GUI_UPPER_Z);
-	uData->laserEnergy = &pData->shots.laserLevel;
-	uData->laserEnergyPosition = makePosition(300, 100, GUI_UPPER_Z);
-	uData->homingEnergy = &pData->shots.homingLevel;
-	uData->homingEnergyPosition = makePosition(350, 100, GUI_UPPER_Z);
-
-	uData->conversationText[0] = '\0';
-	uData->conversationTextPosition = makePosition(400, 100, GUI_UPPER_Z);
 
 	gData = uData;
 }
@@ -56,46 +43,35 @@ void drawMultipleAmount(TextureData tData, Position sPos, int amount){
 	}
 }
 
-void drawBombAmount(){
-	drawMultipleAmount(gData->bombTexture, gData->bombPosition, *gData->bombAmount);
+static void drawBombAmount(){
+	drawText("BOMBS: ",  makePosition(20, 433, GUI_UPPER_Z), 20, COLOR_BLACK);
+	drawMultipleAmount(gData->bombTexture, makePosition(150, 430, GUI_UPPER_Z), *gData->bombAmount);
 }
 
-void drawLifeAmount(){
-	drawMultipleAmount(gData->lifeTexture, gData->lifePosition, *gData->lifeAmount);
+static void drawLifeAmount(){
+	drawText("LIFES: ",  makePosition(20, 385, GUI_UPPER_Z), 20, COLOR_BLACK);
+	drawMultipleAmount(gData->lifeTexture, makePosition(150, 380, GUI_UPPER_Z), *gData->lifeAmount);
 }
 
-
-void drawScore(){
-	char score[100];	
-	sprintf(score, "%d", gData->score);
-	drawText(score, gData->scorePosition, 20, COLOR_WHITE);	
-}
-
-void drawShotEnergies(){
+static void drawShotEnergies(){
 	char text[100];	
-	sprintf(text, "%d/128", *gData->fireEnergy);
-	drawText(text, gData->fireEnergyPosition, 20, COLOR_WHITE);
-	sprintf(text, "%d/128", *gData->laserEnergy);
-	drawText(text, gData->laserEnergyPosition, 20, COLOR_WHITE);
-	sprintf(text, "%d/128", *gData->homingEnergy);
-	drawText(text, gData->homingEnergyPosition, 20, COLOR_WHITE);	
-}
-
-void drawConversation(){
-	drawText(gData->conversationText, gData->conversationTextPosition, 20, COLOR_WHITE);	
+	sprintf(text, "SHOT ENERGY: %d/128", *gData->fireEnergy);
+	drawText(text, makePosition(300, 400, GUI_UPPER_Z), 15, COLOR_BLACK);
 }
 
 void drawMainUI(){
 	int w = gData->UITexture.mTextureSize.x;
 	int h = gData->UITexture.mTextureSize.y;
-	drawSprite(gData->UITexture, makePosition(0, 0, GUI_LOWER_Z), makeRectangle(0, 0, w, h));
+
+	Position p = makePosition(0, 380, GUI_LOWER_Z);
+	scaleDrawing3D(makePosition(640.0/w, 100.0/h, 1), p);
+	drawSprite(gData->UITexture, p, makeRectangle(0, 0, w, h));
+	setDrawingParametersToIdentity();
 }
 
 void drawUserInterface(UserInterfaceData* uData){
 	drawMainUI();
 	drawBombAmount();
 	drawLifeAmount();
-	drawScore();
 	drawShotEnergies();
-	drawConversation();
 }

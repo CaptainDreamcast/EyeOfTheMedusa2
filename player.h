@@ -51,6 +51,7 @@ typedef struct{
 	int collisionID;
 	int collectionID;
 	int isInvisible;
+	int isInvincible;
 
 	Animation animation;
 	TextureData textures[10];

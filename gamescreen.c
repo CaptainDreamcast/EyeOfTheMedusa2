@@ -4,6 +4,7 @@
 #include <tari/log.h>
 #include <tari/input.h>
 #include <tari/animation.h>
+#include <tari/timer.h>
 
 #include "shotHandler.h"
 #include "gameStateLogic.h"
@@ -20,6 +21,7 @@ static void setupGameScreen(char* mainScriptPath){
 	setupUserInterface(&gGameScreenData.userInterface, &gGameScreenData.player);
 	setupGameStateLogic(&gGameScreenData.winFlag, &gGameScreenData.gameOverFlag);
 	setupAnimationHandler();
+	setupTimer();
 }
 
 static GameScreenReturnType checkIfStillRunning(){
@@ -41,6 +43,7 @@ static GameScreenReturnType update(){
 	updateCollision(&gGameScreenData.collision);
 	updateUserInterface(&gGameScreenData.userInterface);
 	updateAnimationHandler();
+	updateTimer();
 	
 	return checkIfStillRunning();
 }
@@ -51,7 +54,7 @@ static void draw(){
 	startDrawing();
 	drawPlayer(&gGameScreenData.player);
 	drawShotHandling();
-	//drawUserInterface(&gGameScreenData.userInterface);
+	drawUserInterface(&gGameScreenData.userInterface);
 	drawScripts(&gGameScreenData.scripts);
 	drawCollisions(&gGameScreenData.collision);
 	drawHandledAnimations();
@@ -83,6 +86,7 @@ static void shutdownGameScreen(){
 	shutdownUserInterface(&gGameScreenData.userInterface);
 	shutdownGameStateLogic();
 	shutdownAnimationHandler();
+	shutdownTimer();
 
 	logInteger(getAvailableTextureMemory());
 	logMemoryState();

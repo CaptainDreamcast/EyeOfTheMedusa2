@@ -41,9 +41,9 @@ static void setup(){
 	gData.isWaiting = 0;
 
 	setupOptionHandler();
-	addOption(makePosition(200, 200, OPTION_Z), "YES", continueCB, NULL);
-	addOption(makePosition(200, 300, OPTION_Z), "NO", noContinueCB, NULL);
-	setOptionTextSize(40);
+	addOption(makePosition(280, 330, OPTION_Z), "YES", continueCB, NULL);
+	addOption(makePosition(280, 380, OPTION_Z), "NO", noContinueCB, NULL);
+	setOptionTextSize(20);
 	setOptionButtonA();
 	setOptionButtonStart();
 	setupTimer();
@@ -72,7 +72,6 @@ static void update() {
 }
 
 static void drawBackground() {
-	return;
 	Rectangle r = makeRectangleFromTexture(gData.background);
 	drawSprite(gData.background, makePosition(0, 0, BACKGROUND_Z), r);
 }
