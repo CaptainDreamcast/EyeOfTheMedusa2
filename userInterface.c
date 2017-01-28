@@ -34,6 +34,12 @@ void setupUserInterface(UserInterfaceData* uData, PlayerData* pData){
 	gData = uData;
 }
 
+void shutdownUserInterface(UserInterfaceData* uData){	
+	unloadTexture(uData->bombTexture);
+	unloadTexture(uData->lifeTexture);
+	unloadTexture(uData->UITexture);
+}
+
 
 
 void updateUserInterface(UserInterfaceData* uData){

@@ -6,7 +6,7 @@
 #include <tari/math.h>
 
 #include "collision.h"
-
+#include "gameStateLogic.h"
 
 #define SCREEN_SIZE_X 640
 #define SCREEN_SIZE_Y 480
@@ -15,11 +15,69 @@
 
 static PlayerData* gData;
 
+static void setVisible();
+
+static void focusPlayer(){
+	gData->isFocused = 1;
+	setDrawPlayerFocus();
+}
+
+static void unfocusPlayer(){
+	gData->isFocused = 0;
+	setDoNotDrawPlayerFocus(); 
+}
+
+static void setInvisible(){
+	gData->isInvisible = 1;
+	removePlayer(gData->collisionID, gData->collectionID);
+	unfocusPlayer();
+}
+
+static void finishGame(void* this){
+	if(!gData->lifeAmount){
+		setGameLost();
+	} else {
+		setVisible();
+	}
+}
+
+
+
+static void receivePowerup(){
+	PlayerShotData* sData = &gData->shots;
+	if(sData->currentType == PLAYER_SHOT_FIRE){
+			sData->fireLevel++;
+	} else {
+		logError("Unrecognized shot type.");
+		logErrorInteger(sData->currentType);
+	}
+}
+
+static void receiveLife(){
+	gData->lifeAmount++;
+}
+
+static void die(){
+	gData->lifeAmount--;
+	Rectangle deathTexturePosition = makeRectangleFromTexture(gData->deathTextures[0]);
+	playAnimation(gData->physics.mPosition, gData->deathTextures, gData->deathAnimation, deathTexturePosition, finishGame, (void*)gData);
+	setInvisible();
+
+}
+
 void playerHit(void* this, int shotID, int strength){
-	(void) this;
-	(void) shotID;
-	(void) strength;
-	
+	if(strength > 0) die();
+	else if(strength == -1) {
+		receivePowerup();	
+	} else if(strength == -2){
+		receiveLife();
+	}
+}
+
+static void setVisible() {
+	gData->isInvisible = 0;
+	gData->collisionID = addPlayerCirc((void*)gData, &gData->col, playerHit);
+	gData->collectionID = addPlayerCollectCirc((void*)gData, &gData->colCollection, playerHit);
 }
 
 void loadPlayerBombTexture(PlayerData* pData){
@@ -27,8 +85,16 @@ void loadPlayerBombTexture(PlayerData* pData){
 	pData->bomb.animation.mFrameAmount = 1;	
 }
 
+void unloadPlayerBombTexture(PlayerData* pData){
+	int i;
+	for(i = 0; i < pData->bomb.animation.mFrameAmount; i++){
+		unloadTexture(pData->bomb.textures[i]);
+	}
+}
+
 void loadPlayerShotFire(PlayerShotFire* fData){	
 	resetPhysicsObject(&fData->physics);
+	gData->isInvisible = 0;
 	fData->strength = 100;
 	fData->physics.mPosition.x = 5;
 	fData->physics.mVelocity.x = 5;
@@ -43,6 +109,11 @@ void loadPlayerShotFire(PlayerShotFire* fData){
 	fData->duration[3] = 1;
 }
 
+void unloadPlayerShotFire(PlayerShotFire* fData){	
+	int i;
+	for(i = 0; i < fData->animation.mFrameAmount; i++) unloadTexture(fData->textures[i]);	
+}
+
 void loadPlayerShots(PlayerData* pData){
 	PlayerShotData* sData = &pData->shots;
 	sData->now = 0;
@@ -55,12 +126,32 @@ void loadPlayerShots(PlayerData* pData){
 	sData->homingLevel = 0;	
 }
 
+void unloadPlayerShots(PlayerData* pData){
+	PlayerShotData* sData = &pData->shots;
+	unloadPlayerShotFire(&sData->fire);
+}
+
 void loadPlayerTextures(PlayerData* pData){
 	pData->animation = createEmptyAnimation();
 	pData->animation.mFrameAmount = 1;
 	pData->textures[0] = loadTexturePKG("/sprites/kat1.pkg");
-	pData->texturePosition = makeRectangle(0, 0, pData->textures[0].mTextureSize.x - 1, pData->textures[0].mTextureSize.y - 1);
+	pData->texturePosition = makeRectangle(0, 0, pData->textures[0].mTextureSize.x - 1, pData->textures[0].mTextureSize.y - 1);	
+	pData->deathAnimation = createEmptyAnimation();
+	pData->deathAnimation.mFrameAmount = 3;
+	pData->deathAnimation.mDuration = 10;
+	pData->deathTextures[0] = loadTexturePKG("/sprites/kat_death1.pkg");
+	pData->deathTextures[1] = loadTexturePKG("/sprites/kat_death2.pkg");
+	pData->deathTextures[2] = loadTexturePKG("/sprites/kat_death3.pkg");
+	
 }
+
+
+void unloadPlayerTextures(PlayerData* pData){
+	int i;
+	for(i = 0; i < pData->animation.mFrameAmount; i++) unloadTexture(pData->textures[i]);
+	for(i = 0; i < pData->deathAnimation.mFrameAmount; i++) unloadTexture(pData->deathTextures[i]);	
+}
+
 
 void setupPlayer(PlayerData* pData){
 	pData->lifeAmount = 3;
@@ -68,7 +159,8 @@ void setupPlayer(PlayerData* pData){
 	pData->physics.mPosition.x = 100;
 	pData->physics.mPosition.y = 100;
 	pData->physics.mPosition.z = PLAYER_Z;
-	pData->col = makeCollisionObjectCirc(makePosition(32, 16, 0), 6, &pData->physics);
+	pData->col = makeCollisionObjectCirc(makePosition(32, 16, 0), 5, &pData->physics);
+	pData->colCollection = makeCollisionObjectCirc(makePosition(32, 16, 0), 10, &pData->physics);
 	pData->isFocused = 0;
 	pData->bomb.amount = 2;
 	pData->bomb.active = 0;
@@ -82,9 +174,17 @@ void setupPlayer(PlayerData* pData){
 	loadPlayerTextures(pData);
 
 	pData->collisionID = addPlayerCirc((void*)pData, &pData->col, playerHit);
+	pData->collectionID = addPlayerCollectCirc((void*)pData, &pData->colCollection, playerHit);
 
 	gData = pData;
 	
+}
+
+void shutdownPlayer(PlayerData* pData){
+	unloadPlayerBombTexture(pData);
+	unloadPlayerShots(pData);
+	
+	unloadPlayerTextures(pData);	
 }
 
 void moveLeft(){
@@ -113,14 +213,6 @@ void normalizeMovement(){
 	} else {
 		gData->physics.mVelocity = vecScale(gData->physics.mVelocity, 3);
 	}
-}
-
-void focusPlayer(){
-	gData->isFocused = 1;
-}
-
-void unfocusPlayer(){
-	gData->isFocused = 0; 
 }
 
 void shutdownBomb(){
@@ -192,6 +284,8 @@ void shootPlayerShot(){
 }
 
 void updatePlayer(PlayerData* pData){
+	if(pData->isInvisible) return;
+
 	if(hasPressedA()){
 		shootPlayerShot();
 	}
@@ -222,10 +316,16 @@ void updatePlayer(PlayerData* pData){
 
 	handlePhysics(&gData->physics);
 	gData->physics.mVelocity = makePosition(0,0,0);
+	gData->physics.mPosition.x = max(0, gData->physics.mPosition.x);
+	gData->physics.mPosition.x = min(640-20, gData->physics.mPosition.x);
+	gData->physics.mPosition.y = max(0, gData->physics.mPosition.y);
+	gData->physics.mPosition.y = min(480-22, gData->physics.mPosition.y);
+	
 
 }
 
 void drawPlayer(PlayerData* pData){
+	if(pData->isInvisible) return;
 	animate(&gData->animation);
 	
 	drawSprite(gData->textures[gData->animation.mFrame], gData->physics.mPosition, gData->texturePosition);	

@@ -3,6 +3,7 @@
 #include <tari/drawing.h>
 #include <tari/log.h>
 #include <tari/input.h>
+#include <tari/animation.h>
 
 #include "shotHandler.h"
 #include "gameStateLogic.h"
@@ -18,6 +19,7 @@ static void setupGameScreen(char* mainScriptPath){
 	setupScripts(&gGameScreenData.scripts, mainScriptPath);
 	setupUserInterface(&gGameScreenData.userInterface, &gGameScreenData.player);
 	setupGameStateLogic(&gGameScreenData.winFlag, &gGameScreenData.gameOverFlag);
+	setupAnimationHandler();
 }
 
 static GameScreenReturnType checkIfStillRunning(){
@@ -38,6 +40,7 @@ static GameScreenReturnType update(){
 	updateShotHandling();
 	updateCollision(&gGameScreenData.collision);
 	updateUserInterface(&gGameScreenData.userInterface);
+	updateAnimationHandler();
 	
 	return checkIfStillRunning();
 }
@@ -51,6 +54,7 @@ static void draw(){
 	//drawUserInterface(&gGameScreenData.userInterface);
 	drawScripts(&gGameScreenData.scripts);
 	drawCollisions(&gGameScreenData.collision);
+	drawHandledAnimations();
 	stopDrawing();
 }
 
@@ -69,9 +73,28 @@ static GameScreenReturnType gameScreenRoutine(){
 	return ret;
 }
 
+static void shutdownGameScreen(){
+	shutdownPhysics(&gGameScreenData.physics);	
+	shutdownShotHandling();
+	shutdownCollision(&gGameScreenData.collision);
+	
+	shutdownPlayer(&gGameScreenData.player);
+	shutdownScripts(&gGameScreenData.scripts);
+	shutdownUserInterface(&gGameScreenData.userInterface);
+	shutdownGameStateLogic();
+	shutdownAnimationHandler();
+
+	logInteger(getAvailableTextureMemory());
+	logMemoryState();
+	logTextureMemoryState();
+}
+
 GameScreenReturnType startGameScreen(char* mainScriptPath){
 	
 	setupGameScreen(mainScriptPath);
 
-	return gameScreenRoutine();
+	GameScreenReturnType ret = gameScreenRoutine();
+
+	shutdownGameScreen();	
+	return ret;
 }

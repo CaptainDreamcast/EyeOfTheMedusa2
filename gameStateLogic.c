@@ -12,6 +12,14 @@ void setupGameStateLogic(int* winFlag, int* gameOverFlag){
 	gGameOverFlag = gameOverFlag;
 }
 
+void shutdownGameStateLogic(){
+	// does not hold memory
+}
+
 void setGameWon(){
 	*gWinFlag = 1;
+}
+
+void setGameLost(){
+	*gGameOverFlag = 1;
 }

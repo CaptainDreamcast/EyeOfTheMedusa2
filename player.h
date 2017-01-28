@@ -44,17 +44,24 @@ typedef struct{
 	
 	PhysicsObject physics;
 	CollisionObjectCirc col;
+	CollisionObjectCirc colCollection;
 	int isFocused;
 	BombData bomb;
 	PlayerShotData shots;
 	int collisionID;
+	int collectionID;
+	int isInvisible;
 
 	Animation animation;
 	TextureData textures[10];
+
+	Animation deathAnimation;
+	TextureData deathTextures[10];
 	Rectangle texturePosition;
 } PlayerData;
 
 void setupPlayer(PlayerData* pData);
+void shutdownPlayer(PlayerData* pData);
 void updatePlayer(PlayerData* pData);
 void drawPlayer(PlayerData* pData);
 

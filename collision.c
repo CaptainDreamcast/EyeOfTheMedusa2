@@ -5,14 +5,51 @@
 #include <tari/log.h>
 #include <tari/math.h>
 #include <tari/drawing.h>
-#define DEBUG_Z 1
+#include <tari/system.h>
+#define DEBUG_Z 10
 
 static CollisionData* gData;
 
-void initList(CollisionList* list){
+
+static void removeDeletedFromCollsionList(CollisionList* list){
+
+	int left = list->size;
+	CollisionElement* cur = list->first;
+
+	int i;
+	for(i = 0; i < left; i++){
+		CollisionElement* next = cur->next;
+		if(cur->isScheduledForDelete){
+			if(cur->prev != NULL) cur->prev->next = cur->next;
+			if(cur->next != NULL) cur->next->prev = cur->prev;
+			if(cur->prev == NULL) list->first = cur->next;
+			if(cur->next == NULL) list->last = cur->prev;
+			if(cur->isOwningData) free(cur->data);
+			free(cur);
+			list->size--;
+			
+		}
+		cur = next;
+	}
+}
+
+static void initList(CollisionList* list){
 	list->size = 0;
 	list->first = NULL;
 	list->last = NULL;
+}
+
+static void emptyList(CollisionList* list){
+	int left = list->size;
+	CollisionElement* cur = list->first;
+
+	int i;
+	for(i = 0; i < left; i++){
+		cur->isScheduledForDelete = 1;
+		cur = cur->next;
+	}
+
+	removeDeletedFromCollsionList(list);
 }
 
 static void loadDebugTextures(CollisionData* cData){
@@ -20,12 +57,32 @@ static void loadDebugTextures(CollisionData* cData){
 	cData->debug.collisionRectTexture = loadTexturePKG("/debug/collision_rect.pkg");
 }
 
+static void unloadDebugTextures(CollisionData* cData){
+	unloadTexture(cData->debug.collisionCircTexture);
+	unloadTexture(cData->debug.collisionRectTexture);
+}
+
 void setupCollision(CollisionData* cData){
 	initList(&cData->playerShots);
 	initList(&cData->enemyShots);
 	initList(&cData->enemies);
 	initList(&cData->player);
+	initList(&cData->playerCollection);
+	initList(&cData->items);
 	loadDebugTextures(cData);
+	gData->isPlayerFocused = 0;
+	gData = cData;
+}
+
+void shutdownCollision(CollisionData* cData){
+	emptyList(&cData->playerShots);
+	emptyList(&cData->enemyShots);
+	emptyList(&cData->enemies);
+	emptyList(&cData->player);
+	emptyList(&cData->playerCollection);
+	emptyList(&cData->items);
+	unloadDebugTextures(cData);
+	gData->isPlayerFocused = 0;
 	gData = cData;
 }
 
@@ -75,28 +132,6 @@ void removeFromCollisionList(CollisionList* list, int shotID){
 			return;
 		}
 		cur = cur->next;
-	}
-}
-
-void removeDeletedFromCollsionList(CollisionList* list){
-
-	int left = list->size;
-	CollisionElement* cur = list->first;
-
-	int i;
-	for(i = 0; i < left; i++){
-		CollisionElement* next = cur->next;
-		if(cur->isScheduledForDelete){
-			if(cur->prev != NULL) cur->prev->next = cur->next;
-			if(cur->next != NULL) cur->next->prev = cur->prev;
-			if(cur->prev == NULL) list->first = cur->next;
-			if(cur->next == NULL) list->last = cur->prev;
-			if(cur->isOwningData) free(cur->data);
-			free(cur);
-			list->size--;
-			
-		}
-		cur = next;
 	}
 }
 
@@ -159,9 +194,51 @@ void compareCollisionLists(CollisionList* list1, CollisionList* list2){
 	removeDeletedFromCollsionList(list2);
 }
 
+static Position getCollisionElementPosition(CollisionElement* e){
+	Position p;	
+	if(e->type == COLLISION_OBJECT_RECT){
+		CollisionObjectRect* r = e->data;
+		p = r->mPhysics->mPosition;
+	} else if(e->type == COLLISION_OBJECT_CIRC){
+		CollisionObjectCirc* r = e->data;
+		p = r->mPhysics->mPosition;
+	} else {
+		logError("Unrrecognized object type");
+		logErrorInteger(e->type);
+		p = makePosition(0, 0, 0);
+		abortSystem();
+	}
+
+	return p;
+}
+
+static int isOutOfBounds(Position p){
+	return p.x <= -50 || p.x >= 700 || p.y <= -50 || p.y >= 530;
+
+}
+
+static void checkIfOutOfBounds(CollisionList* list){
+	int left = list->size;
+	CollisionElement* cur = list->first;
+
+	int i;
+	for(i = 0; i < left; i++){
+		Position p = getCollisionElementPosition(cur);
+		if(isOutOfBounds(p)) { 
+			cur->isScheduledForDelete = 1;
+			removeFromShotHandling(cur->id);
+		}
+		cur = cur->next;
+	}
+}
+
 void updateCollision(CollisionData* cData){
+	checkIfOutOfBounds(&gData->playerShots);
+	checkIfOutOfBounds(&gData->enemyShots);
 	compareCollisionLists(&gData->playerShots, &gData->enemies);
 	compareCollisionLists(&gData->enemyShots, &gData->player);
+	compareCollisionLists(&gData->items, &gData->playerCollection);	
+	compareCollisionLists(&gData->enemies, &gData->player);	
 }
 
 static int addHittableCirc(CollisionObjectCirc* col, void* caller, int strength, collisionHitCB hitCB, int listType, CollisionList* list){
@@ -171,6 +248,10 @@ static int addHittableCirc(CollisionObjectCirc* col, void* caller, int strength,
 
 int addPlayerCirc(void* caller, CollisionObjectCirc* col, collisionHitCB hitCB){
 	return addHittableCirc(col, caller, 0, hitCB, COLLISION_PLAYER, &gData->player);
+}
+
+int addPlayerCollectCirc(void* caller, CollisionObjectCirc* col, collisionHitCB hitCB){
+	return addHittableCirc(col, caller, 0, hitCB, COLLISION_PLAYER, &gData->playerCollection);
 }
 
 int addEnemyCirc(void* caller, CollisionObjectCirc* col, collisionHitCB hitCB){
@@ -209,6 +290,15 @@ int addEnemyShotCirc(void* caller, int strength, CollisionCirc col, int enemySho
 	return shotID;
 }
 
+int addPowerItem(void* caller, CollisionCirc col, int itemType, PhysicsObject physics, collisionHitCB hitCB){
+	CollisionObjectCirc* colObj = malloc(sizeof(CollisionObjectCirc));
+	(*colObj) = makeCollisionObjectCirc(col.mCenter, col.mRadius, NULL);
+	int shotID = addToCollisionListCirc(&gData->items, colObj, caller, -1, COLLISION_OBJECT_CIRC, 1, hitCB);
+	PhysicsObject* p2 = addToShotHandlingType(shotID, physics, ITEM_TYPE_POWER, COLOR_WHITE);
+	colObj->mPhysics = p2;
+	return shotID;
+}
+
 void removePlayerShot(int shotID){
 	removeFromCollisionList(&gData->playerShots, shotID);
 	removeFromShotHandling(shotID);
@@ -219,8 +309,18 @@ void removeEnemyShot(int shotID){
 	removeFromShotHandling(shotID);
 }
 
+void removeItem(int shotID){
+	removeFromCollisionList(&gData->items, shotID);
+	removeFromShotHandling(shotID);
+}
+
 void removeEnemy(int shotID){
 	removeFromCollisionList(&gData->enemies, shotID);
+}
+
+void removePlayer(int shotID, int shotIDCollection){
+	removeFromCollisionList(&gData->player, shotID);
+	removeFromCollisionList(&gData->playerCollection, shotIDCollection);
 }
 
 void drawColCirc(CollisionObjectCirc* obj){
@@ -275,10 +375,22 @@ void drawCollisionList(CollisionList* list){
 	}
 }
 
+void setDrawPlayerFocus(){
+	gData->isPlayerFocused = 1;
+}
+
+void setDoNotDrawPlayerFocus(){
+	gData->isPlayerFocused = 0;
+}
+
 void drawCollisions(CollisionData* cData){
+	if(gData->isPlayerFocused){
+		drawCollisionList(&gData->player);
+	}	
 	return;
-	drawCollisionList(&gData->player);
 	drawCollisionList(&gData->playerShots);
 	drawCollisionList(&gData->enemies);
 	drawCollisionList(&gData->enemyShots);
+	drawCollisionList(&gData->playerCollection);
+	drawCollisionList(&gData->items);
 }

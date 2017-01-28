@@ -54,12 +54,33 @@ void loadShotTypes(){
 	gShotTypeAmount = 0;
 	
 	loadSingleShot("shot1");
-	
+	loadSingleShot("power_item");
+}
+
+void unloadShotTypes(){
+	int i;
+	for(i = 0; i < gShotTypeAmount; i++){
+		int j;
+		for(j = 0; j < gShotTypes[i].animation.mFrameAmount; j++){
+			unloadTexture(gShotTypes[i].textures[j]);
+		}
+	}
 }
 
 void setupShotHandling(){
 
 	loadShotTypes();
+	int i;
+	for(i = 0; i < 10000; i++){
+		gShots[i].active = 0;
+	}
+
+	gData.curID = 0;
+}
+
+void shutdownShotHandling(){
+
+	unloadShotTypes();
 	int i;
 	for(i = 0; i < 10000; i++){
 		gShots[i].active = 0;
@@ -89,18 +110,27 @@ void updateShotHandling(){
 	}
 }
 
+#include <math.h>
 
 void drawShotHandling(){
 	int i;
 	for(i = 0; i < 10000; i++){
 		if(!gShots[i].active) continue; 
 		TextureData texture = gShots[i].textures[gShots[i].animation.mFrame];
-		Rectangle rect = makeRectangle(0, 0, texture.mTextureSize.x - 1, texture.mTextureSize.y - 1);
+		Rectangle rect = makeRectangleFromTexture(texture);
+		double angle;
+		if(!vecLength(gShots[i].physics.mVelocity)) angle = 0;
+		else angle = getAngleFromDirection(gShots[i].physics.mVelocity);
+
+		Position rotPosition = vecAdd(gShots[i].physics.mPosition, getTextureMiddlePosition(texture));		
+		setDrawingRotationZ(angle, rotPosition);
+
 		setDrawingBaseColor(gShots[i].color);
 		drawSprite(texture, gShots[i].physics.mPosition, rect);
-		void setDrawingParametersToIdentity();
+		setDrawingParametersToIdentity();
 	}
 }
+
 
 
 PhysicsObject* addToShotHandlingInternal(int shotID, PhysicsObject physics, Animation animation, TextureData* textures, int type, Color color){

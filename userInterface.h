@@ -35,6 +35,7 @@ typedef struct{
 } UserInterfaceData;
 
 void setupUserInterface(UserInterfaceData* uData, PlayerData* pData);
+void shutdownUserInterface(UserInterfaceData* uData);
 void updateUserInterface(UserInterfaceData* uData);
 void drawUserInterface(UserInterfaceData* uData);
 

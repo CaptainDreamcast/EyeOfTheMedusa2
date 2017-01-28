@@ -47,6 +47,11 @@ void setupScripts(ScriptData* sData, char* mainScriptPath){
 	}
 
 }
+
+void shutdownScripts(ScriptData* sData){
+	mainScript->func.unload(mainScript);
+}
+
 void updateScripts(ScriptData* sData){
 	ScriptResult res = mainScript->func.update(mainScript);
 	if(res == SCRIPT_RESULT_END) {

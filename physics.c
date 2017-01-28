@@ -12,3 +12,7 @@ void setupPhysics(PhysicsData* pData){
 void updatePhysics(PhysicsData* pData){
 	(void)pData;
 }
+
+void shutdownPhysics(PhysicsData* pData){
+	(void)pData;
+}

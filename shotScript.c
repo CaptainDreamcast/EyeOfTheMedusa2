@@ -11,7 +11,7 @@
 #include "collision.h"
 #include "player.h"
 
-#define ENEMY_SHOT_POSITION_Z 4
+#define ENEMY_SHOT_POSITION_Z 6
 
 typedef struct{
 
@@ -172,14 +172,6 @@ script* loadShotScript(char* path){
 void unloadShotScript(script * this){
 	free(this->data);
 	destroyScript(this);
-}
-
-Position variatePosition(Position base){
-	Position ret;
-	ret.x = randfrom(-base.x, base.x);
-	ret.y = randfrom(-base.y, base.y);
-	ret.z = randfrom(-base.z, base.z);
-	return ret;
 }
 
 void removeShotScriptShot(void* this, int shotID, int strength){

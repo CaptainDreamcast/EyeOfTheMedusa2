@@ -53,22 +53,34 @@ typedef struct{
 	CollisionList enemyShots;
 	CollisionList enemies;
 	CollisionList player;
+	CollisionList playerCollection;
+	CollisionList items;
 	CollisionDebugData debug;
+	int isPlayerFocused;
 } CollisionData;
 
 void setupCollision(CollisionData* cData);
+void shutdownCollision(CollisionData* cData);
 void updateCollision(CollisionData* cData);
 
 int addPlayerCirc(void* caller, CollisionObjectCirc* col, collisionHitCB hitCB);
-int addEnemyCirc(void* caller, CollisionObjectCirc* col, collisionHitCB hitCB);
+int addPlayerCollectCirc(void* caller, CollisionObjectCirc* col, collisionHitCB hitCB);
 
+int addEnemyCirc(void* caller, CollisionObjectCirc* col, collisionHitCB hitCB);
 int addPlayerShotRect(void* caller, int strength, CollisionRect col, PhysicsObject physics, Animation animation, TextureData* textures, collisionHitCB hitCB);
 int addPlayerShotCirc(void* caller, int strength, CollisionCirc col, PhysicsObject physics, Animation animation, TextureData* textures, collisionHitCB hitCB);
 int addEnemyShotCirc(void* caller, int strength, CollisionCirc col, int enemyShotType, PhysicsObject physics, Color color, collisionHitCB hitCB);
+int addPowerItem(void* caller, CollisionCirc col, int itemType, PhysicsObject physics, collisionHitCB hitCB);
+
 void removePlayerShot(int shotID);
 void removeEnemyShot(int shotID);
+void removeItem(int shotID);
 void removeEnemy(int shotID);
+void removePlayer(int shotID, int shotIDCollection);
 
+
+void setDoNotDrawPlayerFocus();
+void setDrawPlayerFocus();
 void drawCollisions(CollisionData* cData);
 
 #endif

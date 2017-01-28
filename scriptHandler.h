@@ -6,6 +6,7 @@ typedef struct{
 } ScriptData;
 
 void setupScripts(ScriptData* sData, char* mainScriptPath);
+void shutdownScripts(ScriptData* sData);
 void updateScripts(ScriptData* sData);
 void drawScripts(ScriptData* sData);
 

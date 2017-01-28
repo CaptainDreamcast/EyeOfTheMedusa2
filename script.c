@@ -6,6 +6,7 @@ void initScriptData(script* ret, char* path){
 	debugLog("Initialize Script.");
 	ret->raw = fileToBuffer(path);
 	ret->pointers.cur = (char*)ret->raw.data;	
+	ret->subScriptAmount = 0;
 
 	ret->pointers.loadStart = strchr(ret->pointers.cur, '{')+1;
 	ret->pointers.loadEnd = strchr(ret->pointers.loadStart, '}');
@@ -14,7 +15,7 @@ void initScriptData(script* ret, char* path){
 }
 
 char* toNextInstruction(char* pointer, char* end){
-	pointer = strchr(pointer, ';')+1;
+	pointer = strchr(pointer, '\n')+1;
 	if(pointer > end) pointer = NULL;
 	
 	if(pointer != NULL){

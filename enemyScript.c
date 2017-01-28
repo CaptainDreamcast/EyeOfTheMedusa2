@@ -2,15 +2,22 @@
 
 #include <tari/animation.h>
 #include <tari/collision.h>
+#include <tari/log.h>
+#include <tari/system.h>
 
 #include "shotScript.h"
 #include "collision.h"
+#include "shotHandler.h"
+#include "itemHandler.h"
 
 #define ENEMY_POSITION_Z 5
 
 typedef struct{
 	Animation animation;
 	TextureData textures[10];
+
+	Animation deathAnimation;
+	TextureData deathTextures[10];
 	PhysicsObject physics;
 	CollisionObjectCirc col;
 
@@ -19,6 +26,10 @@ typedef struct{
 
 	int shotID;
 	int health;
+	int isDying;
+
+	int dropType;
+	int dropAmount;
 
 	Duration lifeDuration;
 	Duration lifeNow;
@@ -28,13 +39,13 @@ typedef struct{
 
 } EnemyScriptData;
 
-void loadEnemyTexture(script* this, EnemyScriptData* data){
+void loadEnemyTexture(script* this, EnemyScriptData* data, TextureData* textures, Animation* animation){
 	char path[100];
 	this->pointers.cur = getNextWord(this->pointers.cur, path);
 
 
-	data->textures[data->animation.mFrameAmount] = loadTexturePKG(path);
-	data->animation.mFrameAmount++;
+	textures[animation->mFrameAmount] = loadTexturePKG(path);
+	animation->mFrameAmount++;
 }
 
 void loadEnemyShot(script* this, EnemyScriptData* data){
@@ -61,6 +72,12 @@ void loadEnemyAssets(script* this, EnemyScriptData* data){
 	data->health = 0;
 	data->lifeDuration = 0;
 	data->lifeNow = 0;
+	data->isDying = 0;
+	data->now = 0;
+	data->duration = 0;
+	data->dropType = 0;
+	data->dropAmount = 0;
+	data->deathAnimation = createEmptyAnimation();
 
 	data->shotAmount = 0;	
 
@@ -69,11 +86,17 @@ void loadEnemyAssets(script* this, EnemyScriptData* data){
 		this->pointers.cur = getNextWord(this->pointers.cur, word);
 		
 		if(!strcmp("TEXTURE", word)){
-			loadEnemyTexture(this, data);
+			loadEnemyTexture(this, data, data->textures, &data->animation);
+		} if(!strcmp("DEATH_TEXTURE", word)){
+			loadEnemyTexture(this, data, data->deathTextures, &data->deathAnimation);
 		} else if(!strcmp("DURATION", word)){
 			int v;
 			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);
 			data->animation.mDuration = v;
+		} else if(!strcmp("DEATH_DURATION", word)){
+			int v;
+			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);
+			data->deathAnimation.mDuration = v;
 		} else if(!strcmp("POSITION", word)){
 			int v;
 			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);
@@ -98,6 +121,14 @@ void loadEnemyAssets(script* this, EnemyScriptData* data){
 			int v;
 			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);
 			data->lifeDuration = v;
+		}  else if(!strcmp("DROP", word)){
+			this->pointers.cur = getNextWord(this->pointers.cur, word);
+			if(!strcmp("POWER", word)) data->dropType = ITEM_TYPE_POWER;
+			else {
+				logError("Unable to parse drop type.");
+				logErrorString(word);
+			}
+			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &data->dropAmount);
 		}
 
 		this->pointers.cur = toNextInstruction(this->pointers.cur, this->pointers.loadEnd);
@@ -127,6 +158,10 @@ void unloadTexturesAndShots(script* this, EnemyScriptData* data){
 	int i;
 	for(i = 0; i < data->animation.mFrameAmount; i++){
 		unloadTexture(data->textures[i]);
+	}
+
+	for(i = 0; i < data->deathAnimation.mFrameAmount; i++){
+		unloadTexture(data->deathTextures[i]);
 	}	
 
 	for(i = 0; i < data->shotAmount; i++){
@@ -175,34 +210,68 @@ void readNextEnemyInstruction(script* this, EnemyScriptData* data){
 		this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);
 		data->duration = v;
 		data->now = 0;
+	} else if(!strcmp("MOVE", word)){
+			int v;
+			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);
+			data->physics.mVelocity.x = v;
+			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);
+			data->physics.mVelocity.y = v;
+	} else if(!strcmp("STOP", word)){
+			data->physics.mVelocity.x = data->physics.mVelocity.y = 0;
+	} else {
+		logError("Unrecognized token");
+		logErrorString(word);
+		abortSystem();
 	}		
 
 	this->pointers.cur = toNextInstruction(this->pointers.cur, this->pointers.mainEnd);
 }
 
+static void endEnemyScript(void* caller){
+	script* this = caller;
+	EnemyScriptData* data = this->data;
+	data->isDying = 2;
+}
 
 static void die(script* this){
 	EnemyScriptData* data = this->data;
 	removeEnemy(data->shotID);
+	Rectangle deathTexturePosition = makeRectangleFromTexture(data->deathTextures[0]);
+	playAnimation(data->physics.mPosition, data->deathTextures, data->deathAnimation, deathTexturePosition, endEnemyScript, (void*)this);
+	data->isDying = 1;
+}
+
+static void dropItems(script* this){
+	EnemyScriptData* data = this->data;
+	if(!data->dropType || !data->dropAmount) return;
+	if(data->dropType == ITEM_TYPE_POWER) addPowerItems(data->physics.mPosition, data->dropAmount);
+	else {
+		logError("Unrecognized item type");
+		logInteger(data->dropType);
+	}
 }
 
 ScriptResult updateEnemyScript(script * this){
 	EnemyScriptData* data = this->data;
 
+	if(data->isDying == 1) return SCRIPT_RESULT_CONTINUE;	
+	else if(data->isDying == 2) return SCRIPT_RESULT_END;	
+
 	if(data->health <= 0){
+		dropItems(this);
 		die(this);
-		return SCRIPT_RESULT_END;	
+		return SCRIPT_RESULT_CONTINUE;	
 	}
 
 	animate(&data->animation);
 	handlePhysics(&data->physics);
 
 	if(isEnemyWaiting(this, data)) return SCRIPT_RESULT_CONTINUE;
-	
+
 	int isScriptOver = handleDurationAndCheckIfOver(&data->lifeNow, data->lifeDuration);
 	if(isScriptOver) {
 		die(this);
-		return SCRIPT_RESULT_END;
+		return SCRIPT_RESULT_CONTINUE;
 	}
 
 	if(this->pointers.cur == NULL) this->pointers.cur = this->pointers.mainStart;
@@ -217,8 +286,10 @@ ScriptResult updateEnemyScript(script * this){
 ScriptDrawingData getEnemyScriptDrawingData(script * this){
 	ScriptDrawingData ret;
 	EnemyScriptData* data = this->data;
+	if(data->isDying) return ret;
+
 	TextureData texture = data->textures[data->animation.mFrame];
-	Rectangle rect = makeRectangle(0, 0, texture.mTextureSize.x - 1, texture.mTextureSize.y - 1);
+	Rectangle rect = makeRectangleFromTexture(texture);
 	drawSprite(texture, data->physics.mPosition, rect);
 
 	return ret;
