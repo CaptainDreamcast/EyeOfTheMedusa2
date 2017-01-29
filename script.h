@@ -2,53 +2,49 @@
 #define SCRIPT_H
 
 #include <tari/texture.h>
+#include <tari/file.h>
 
 #include "scriptBase.h"
-#include "gameScript.h"
-#include "levelScript.h"
-#include "stageScript.h"
-#include "sectionScript.h"
-#include "enemyScript.h"
 
 struct script_type {
 	script* (*load)(char* path);
 	void (*unload)(script * this);
-	void (*update)(script * this, double deltaTime);
+	ScriptResult (*update)(script * this);
 	ScriptDrawingData (*getScriptDrawingData)(script * this);
-} GameScript = {
-	.load = loadGameScript,
-	.unload = unloadGameScript,
-	.update = updateGameScript,
-	.getScriptDrawingData = getGameScriptDrawingData
-}, LevelScript = {
-	.load = loadLevelScript,
-	.unload = unloadLevelScript,
-	.update = updateLevelScript,
-	.getScriptDrawingData = getLevelScriptDrawingData
-}, StageScript = {
-	.load = loadStageScript,
-	.unload = unloadStageScript,
-	.update = updateStageScript,
-	.getScriptDrawingData = getStageScriptDrawingData
-}, SectionScript = {
-	.load = loadSectionScript,
-	.unload = unloadSectionScript,
-	.update = updateSectionScript,
-	.getScriptDrawingData = getSectionScriptDrawingData
-}, EnemyScript = {
-	.load = loadEnemyScript,
-	.unload = unloadEnemyScript,
-	.update = updateEnemyScript,
-	.getScriptDrawingData = getEnemyScriptDrawingData
-}, ShotScript = {
-	.load = loadEnemyScript,
-	.unload = unloadEnemyScript,
-	.update = updateEnemyScript,
-	.getScriptDrawingData = getEnemyScriptDrawingData 
 };
 
+typedef struct{
+	char* loadStart;
+	char* loadEnd;
+
+	char* mainStart;
+	char* mainEnd;
+
+	char* cur;
+
+} ScriptPointers;
+
 typedef struct script_internal {
-	struct script_type  func;
+	struct script_type  func;	
+
+	int subScriptAmount;
+	struct script_internal* subScripts[100];
+	
+	ScriptPointers pointers;
+	Buffer raw;	
+
+	void* data;
 } script;
+
+void initScriptData(script* s, char* path);
+
+char* toNextInstruction(char* scriptPointer, char* blockEnd);
+char* getNextWord(char* scriptPointer, char* word);
+char* getNextScriptInteger(char* scriptPointer, int* v);
+char* getNextScriptDouble(char* scriptPointer, double* v);
+
+void getScriptPath(char* outPath, char* scriptName);
+
+void destroyScript(script* s);
 
 #endif

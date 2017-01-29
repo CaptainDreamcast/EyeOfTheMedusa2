@@ -8,7 +8,10 @@
 #include "userInterface.h"
 
 typedef enum {
-	GAMESCREEN_RETURN_SUCCESS
+	GAMESCREEN_RETURN_SUCCESS,
+	GAMESCREEN_RETURN_FAILURE,
+	GAMESCREEN_RETURN_CONTINUE,
+	GAMESCREEN_RETURN_ABORT,
 } GameScreenReturnType;
 
 typedef struct {
@@ -17,6 +20,8 @@ typedef struct {
 	PlayerData player;
 	ScriptData scripts;
 	UserInterfaceData userInterface;
+	int winFlag;
+	int gameOverFlag;
 } GameScreenData;
 
 GameScreenReturnType startGameScreen(char* mainScriptPath);

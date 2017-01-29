@@ -1,11 +1,11 @@
 #ifndef GAMESCRIPT_H
 #define GAMESCRIPT_H
 
-#include "scriptBase.h"
+#include "script.h"
 
 script* loadGameScript(char* path);
 void unloadGameScript(script * this);
-void updateGameScript(script * this, double deltaTime);
+ScriptResult updateGameScript(script * this);
 ScriptDrawingData getGameScriptDrawingData(script * this);
 
 #endif

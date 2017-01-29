@@ -7,5 +7,6 @@ typedef struct{
 
 void setupPhysics(PhysicsData* pData);
 void updatePhysics(PhysicsData* pData);
+void shutdownPhysics(PhysicsData* pData);
 
 #endif
