@@ -16,8 +16,6 @@ KOS_INIT_ROMDISK(romdisk);
 
 uint32_t useRomDisk = 1;
 
-#define DEVELOP
-
 void exitGame() {
 #ifdef DEVELOP
   arch_exit();
