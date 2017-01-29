@@ -6,11 +6,12 @@
 #include <tari/system.h>
 
 #include "enemyScript.h"
+#include "collision.h"
 
 typedef struct{
 	int enemyAmount;
-	int isEnemyAlive[10];
-	script* subEnemies[10];
+	int isEnemyAlive[100];
+	script* subEnemies[100];
 	int curEnemy;
 
 	Duration now;
@@ -148,9 +149,6 @@ ScriptResult updateSectionScript(script * this){
 	SectionScriptData* data = this->data;
 
 	debugLog("Start updating section script.");
-	if(checkIfSectionDead(this, data)) return SCRIPT_RESULT_END;
-
-	debugLog("Section script not dead.");
 
 	updateActiveSectionEnemies(this, data);
 
@@ -159,7 +157,16 @@ ScriptResult updateSectionScript(script * this){
 	debugLog("Section script not waiting.");
 
 	int isScriptOver = checkIfSectionScriptOver(this);
-	if(isScriptOver) return SCRIPT_RESULT_CONTINUE;
+	if(isScriptOver) {
+		if(checkIfSectionDead(this, data)) {
+			debugLog("Section dead.");
+			removeAllEnemyShots();
+			return SCRIPT_RESULT_END;
+		}
+		debugLog("Section script not dead.");
+
+		return SCRIPT_RESULT_CONTINUE;
+	}
 
 	debugLog("Section script not over.");
 

@@ -82,17 +82,11 @@ void loadShotAssets(script* this, ShotScriptData* data){
 		if(!strcmp("TYPE", word)){
 			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &data->shotType);
 		} else if(!strcmp("POSITION", word)){
-			int v;
-			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);	
-			data->physics.mPosition.x= v;
-			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);	
-			data->physics.mPosition.y= v;
+			this->pointers.cur = getNextScriptDouble(this->pointers.cur, &data->physics.mPosition.x);	
+			this->pointers.cur = getNextScriptDouble(this->pointers.cur, &data->physics.mPosition.y);	
 		} else if(!strcmp("VELOCITY", word)){
-			int v;
-			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);	
-			data->physics.mVelocity.x= v;
-			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);	
-			data->physics.mVelocity.y= v;
+			this->pointers.cur = getNextScriptDouble(this->pointers.cur, &data->physics.mVelocity.x);	
+			this->pointers.cur = getNextScriptDouble(this->pointers.cur, &data->physics.mVelocity.y);
 		} else if(!strcmp("ACCEL", word)){
 			int v;
 			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);	

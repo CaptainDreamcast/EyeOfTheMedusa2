@@ -22,7 +22,7 @@ typedef struct{
 	CollisionObjectCirc col;
 
 	int shotAmount;
-	script* shotTypes[10];
+	script* shotTypes[100];
 
 	int shotID;
 	int health;

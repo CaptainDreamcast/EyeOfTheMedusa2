@@ -1,6 +1,8 @@
 #include "levelScript.h"
 
 #include <tari/log.h>
+#include <tari/system.h>
+#include <tari/math.h>
 
 #include "scriptTypes.h"
 
@@ -16,7 +18,9 @@ void loadSubScripts(script* ret){
 	while(ret->pointers.cur != NULL){
 		char identifier[100];
 		char scriptName[100];	
-		sscanf(ret->pointers.cur, "%s %s", identifier, scriptName);
+
+		ret->pointers.cur = getNextWord(ret->pointers.cur, identifier);
+		ret->pointers.cur = getNextWord(ret->pointers.cur, scriptName);
 
 		char path[100];
 		getScriptPath(path, scriptName);
@@ -27,7 +31,7 @@ void loadSubScripts(script* ret){
 			ret->subScripts[i] = SectionScript.load(path);
 		} else if(!strcmp(identifier, "BOSS")){
 			logError("Not implemented");
-			// TODO
+			abortSystem();
 		} else {
 			logError("Unidentified Script Token");
 			logErrorString(identifier);
@@ -66,11 +70,13 @@ void unloadLevelScript(script * this){
 ScriptResult updateLevelScript(script * this){
 	LevelScriptData* data = this->data;
 	
+	
 	ScriptResult isSubScriptOver = this->subScripts[data->cur]->func.update(this->subScripts[data->cur]);
 	if(isSubScriptOver == SCRIPT_RESULT_CONTINUE) return SCRIPT_RESULT_CONTINUE;
 
 	data->cur++;
 	int isOver = data->cur >= this->subScriptAmount;
+	data->cur = min(data->cur, this->subScriptAmount-1);
 	if(isOver) return SCRIPT_RESULT_END;
 	
 	return SCRIPT_RESULT_CONTINUE;

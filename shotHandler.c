@@ -2,6 +2,7 @@
 
 #include <tari/log.h>
 #include <tari/drawing.h>
+#include <tari/system.h>
 
 // TODO: rewrite with a set
 
@@ -55,6 +56,7 @@ void loadShotTypes(){
 	
 	loadSingleShot("shot1");
 	loadSingleShot("power_item");
+	loadSingleShot("shot2");
 }
 
 void unloadShotTypes(){
@@ -98,19 +100,19 @@ int getNextShotId (){
 			return -1;
 		}
 	}
-	return gData.curID;
+	int ret = gData.curID;
+	gData.curID = (gData.curID+1) % 10000;
+	return ret;
 }
 
 void updateShotHandling(){
 	int i;
 	for(i = 0; i < 10000; i++){
 		if(!gShots[i].active) continue;
-		animate(&gShots[i].animation);
+		animate(&gShots[i].animation);		
 		handlePhysics(&gShots[i].physics);	
 	}
 }
-
-#include <math.h>
 
 void drawShotHandling(){
 	int i;

@@ -17,7 +17,7 @@ typedef struct {
 	CollisionCirc col;
 	Animation animation;
 	TextureData textures[10];	
-	Duration duration[4];
+	Duration duration[17];
 } PlayerShotFire;
 
 typedef struct {

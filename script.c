@@ -49,6 +49,17 @@ char* getNextScriptInteger(char* scriptPointer, int* v){
 	return scriptPointer;
 }
 
+char* getNextScriptDouble(char* scriptPointer, double* v){
+	debugLog("Reading next Double");
+	int positionsRead;	
+	sscanf(scriptPointer, "%lf%n", v, &positionsRead);
+	scriptPointer += positionsRead;
+	debugInteger(positionsRead);
+	debugDouble(v);
+	
+	return scriptPointer;
+}
+
 void getScriptPath(char* path, char* scriptName){
 	sprintf(path, "/scripts/%s.txt", scriptName);
 }

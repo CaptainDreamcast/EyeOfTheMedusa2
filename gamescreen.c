@@ -34,7 +34,6 @@ static GameScreenReturnType checkIfStillRunning(){
 }
 
 static GameScreenReturnType update(){
-	debugLog("Update game screen.");
 	updateInput();
 	updatePlayer(&gGameScreenData.player);
 	updateScripts(&gGameScreenData.scripts);
@@ -49,7 +48,6 @@ static GameScreenReturnType update(){
 }
 
 static void draw(){
-	debugLog("Draw game screen.");
 	waitForScreen();
 	startDrawing();
 	drawPlayer(&gGameScreenData.player);
@@ -88,7 +86,11 @@ static void shutdownGameScreen(){
 	shutdownAnimationHandler();
 	shutdownTimer();
 
-	logInteger(getAvailableTextureMemory());
+	// TODO: make properly
+	resumePhysics();
+	resumeDurationHandling();
+
+	debugInteger(getAvailableTextureMemory());
 	logMemoryState();
 	logTextureMemoryState();
 }

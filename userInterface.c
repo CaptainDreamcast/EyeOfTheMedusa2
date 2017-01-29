@@ -1,5 +1,10 @@
 #include "userInterface.h"
 
+#include <tari/physics.h>
+#include <tari/animation.h>
+#include <tari/input.h>
+
+
 static UserInterfaceData* gData;
 
 #define GUI_LOWER_Z 11
@@ -15,8 +20,12 @@ void setupUserInterface(UserInterfaceData* uData, PlayerData* pData){
 	uData->lifeTexture = loadTexturePKG("/sprites/life_UI.pkg");
 
 	uData->UITexture = loadTexturePKG("/sprites/white.pkg");
+	uData->pauseTexture = loadTexturePKG("/sprites/pause.pkg");
 
 	uData->fireEnergy = &pData->shots.fireLevel;
+
+	uData->isPaused = 0;
+	uData->pauseID = -1;
 
 	gData = uData;
 }
@@ -25,12 +34,45 @@ void shutdownUserInterface(UserInterfaceData* uData){
 	unloadTexture(uData->bombTexture);
 	unloadTexture(uData->lifeTexture);
 	unloadTexture(uData->UITexture);
+	unloadTexture(uData->pauseTexture);
 }
 
+static void addPauseSign() {
 
+	Rectangle r = makeRectangleFromTexture(gData->pauseTexture);
+	Animation a = createOneFrameAnimation();
+	gData->pauseID = playAnimationLoop(makePosition(140, 80, GUI_UPPER_Z), &gData->pauseTexture, a, r);
+}
+
+static void removePauseSign() {
+	removeHandledAnimation(gData->pauseID);
+}
+
+static void pauseGame() {
+	addPauseSign();
+	pausePhysics();
+	pauseDurationHandling();
+	gData->isPaused = 1;
+}
+
+static void unpauseGame() {
+	removePauseSign();
+	resumePhysics();
+	resumeDurationHandling();
+	gData->isPaused = 0;
+}
+
+static void checkPause() {
+	int hasPressedStart = hasPressedStartFlank();
+	if(!hasPressedStart) return;
+
+	if(!gData->isPaused) pauseGame();
+	else unpauseGame();
+
+}
 
 void updateUserInterface(UserInterfaceData* uData){
-	(void)uData;
+	checkPause();
 }
 
 void drawMultipleAmount(TextureData tData, Position sPos, int amount){
@@ -49,8 +91,8 @@ static void drawBombAmount(){
 }
 
 static void drawLifeAmount(){
-	drawText("LIFES: ",  makePosition(20, 385, GUI_UPPER_Z), 20, COLOR_BLACK);
-	drawMultipleAmount(gData->lifeTexture, makePosition(150, 380, GUI_UPPER_Z), *gData->lifeAmount);
+	drawText("LIVES: ",  makePosition(20, 385, GUI_UPPER_Z), 20, COLOR_BLACK);
+	drawMultipleAmount(gData->lifeTexture, makePosition(150, 380, GUI_UPPER_Z), (*gData->lifeAmount)-1);
 }
 
 static void drawShotEnergies(){

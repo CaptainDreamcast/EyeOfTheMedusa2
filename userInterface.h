@@ -15,8 +15,12 @@ typedef struct{
 	TextureData lifeTexture;
 
 	TextureData UITexture;
+	TextureData pauseTexture;
 
 	int* fireEnergy;
+
+	int isPaused;
+	int pauseID;
 
 } UserInterfaceData;
 

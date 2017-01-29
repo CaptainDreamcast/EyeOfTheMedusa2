@@ -318,9 +318,8 @@ void removeEnemy(int shotID){
 	removeFromCollisionList(&gData->enemies, shotID);
 }
 
-void removePlayer(int shotID, int shotIDCollection){
+void removePlayer(int shotID){
 	removeFromCollisionList(&gData->player, shotID);
-	removeFromCollisionList(&gData->playerCollection, shotIDCollection);
 }
 
 static void removeAllEnemyShotsFromShotHandling(CollisionList* list) {
@@ -403,7 +402,7 @@ void drawCollisions(CollisionData* cData){
 	if(gData->isPlayerFocused){
 		drawCollisionList(&gData->player);
 	}	
-	
+
 	return;
 	drawCollisionList(&gData->playerShots);
 	drawCollisionList(&gData->enemies);

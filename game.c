@@ -10,15 +10,15 @@ void startGame(){
 	
 	while(result != GAMESCREEN_RETURN_ABORT){	
 		if(result == GAMESCREEN_RETURN_SUCCESS) {
-			//result = startTitleScreen();
+			result = startTitleScreen();
 			if(result == GAMESCREEN_RETURN_ABORT) break;
 		}
 
-		result = startGameScreen("/scripts/SECTION1.txt");
+		result = startGameScreen("/scripts/LEVEL1.txt");
 		if(result == GAMESCREEN_RETURN_SUCCESS) result = startCongratulationsScreen();
 		else if(result == GAMESCREEN_RETURN_FAILURE) result = startGameOverScreen();
 		
-		//if(result == GAMESCREEN_RETURN_ABORT) result = GAMESCREEN_RETURN_SUCCESS;
+		if(result == GAMESCREEN_RETURN_ABORT) result = GAMESCREEN_RETURN_SUCCESS;
 		
 	}
 }

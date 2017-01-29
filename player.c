@@ -33,7 +33,7 @@ static void setVisible() {
 
 static void setInvisible(){
 	gData->isInvisible = 1;
-	removePlayer(gData->collisionID, gData->collectionID);
+	removePlayer(gData->collisionID);
 	unfocusPlayer();
 }
 
@@ -44,7 +44,7 @@ static void setInvincible() {
 }
 
 static void finishGame(void* this){
-	if(!gData->lifeAmount){
+	if(gData->lifeAmount <= 0){
 		setGameLost();
 	} else {
 		setInvincible();
@@ -59,6 +59,7 @@ static void receivePowerup(){
 	PlayerShotData* sData = &gData->shots;
 	if(sData->currentType == PLAYER_SHOT_FIRE){
 			sData->fireLevel++;
+			sData->fireLevel = min(128, sData->fireLevel);
 	} else {
 		logError("Unrecognized shot type.");
 		logErrorInteger(sData->currentType);
@@ -69,8 +70,21 @@ static void receiveLife(){
 	gData->lifeAmount++;
 }
 
+static void halveShotPower() {
+	if(gData->shots.currentType == PLAYER_SHOT_FIRE){
+			gData->shots.fireLevel /= 2;
+	} else {
+		logError("Invalid Player shot type.");
+		logErrorInteger(gData->shots.currentType);
+		abortSystem();
+	}
+}
+
 static void die(){
-	gData->lifeAmount--;
+	
+
+	gData->lifeAmount--;	
+	halveShotPower();
 	Rectangle deathTexturePosition = makeRectangleFromTexture(gData->deathTextures[0]);
 	playAnimation(gData->physics.mPosition, gData->deathTextures, gData->deathAnimation, deathTexturePosition, finishGame, (void*)gData);
 	setInvisible();
@@ -89,7 +103,6 @@ void playerHit(void* this, int shotID, int strength){
 static void setVulnerable(void* caller) {
 	gData->isInvincible = 0;
 	gData->collisionID = addPlayerCirc((void*)gData, &gData->col, playerHit);
-	gData->collectionID = addPlayerCollectCirc((void*)gData, &gData->colCollection, playerHit);
 }
 
 void loadPlayerBombTexture(PlayerData* pData){
@@ -114,10 +127,11 @@ void loadPlayerShotFire(PlayerShotFire* fData){
 	fData->animation.mFrameAmount = 1;
 	fData->animation.mDuration = 5;
 	fData->textures[0] = loadTexturePKG("/sprites/fire1.pkg");	
-	fData->duration[0] = 10;
-	fData->duration[1] = 10;
-	fData->duration[2] = 5;
-	fData->duration[3] = 1;
+	fData->duration[0] = 20;
+	int i;
+	for(i = 2; i < 17; i+=2) {
+		fData->duration[i] = fData->duration[i-1] = fData->duration[i-2] - 1;
+	}
 }
 
 void unloadPlayerShotFire(PlayerShotFire* fData){	
@@ -172,7 +186,7 @@ void setupPlayer(PlayerData* pData){
 	pData->physics.mPosition.x = 100;
 	pData->physics.mPosition.y = 100;
 	pData->physics.mPosition.z = PLAYER_Z;
-	pData->col = makeCollisionObjectCirc(makePosition(32, 16, 0), 5, &pData->physics);
+	pData->col = makeCollisionObjectCirc(makePosition(32, 16, 0), 3, &pData->physics);
 	pData->colCollection = makeCollisionObjectCirc(makePosition(32, 16, 0), 10, &pData->physics);
 	pData->isFocused = 0;
 	pData->bomb.amount = 2;
@@ -248,6 +262,7 @@ void usePlayerBomb(){
 	gData->bomb.shotID = addPlayerShotRect((void*)gData, INF, gData->bomb.col, gData->bomb.physics, gData->bomb.animation, gData->bomb.textures, actionAfterBombHitsEnemy);
 	gData->bomb.amount--;
 
+	halveShotPower();
 	removeAllEnemyShots();
 
 	addTimerCB(120, shutdownBomb, NULL);
@@ -264,7 +279,7 @@ void updatePlayerShot(){
 	PlayerShotData* sData = &gData->shots;
 	Duration duration = 0;
 	if(sData->currentType == PLAYER_SHOT_FIRE){
-			int level = sData->fireLevel;
+			int level = sData->fireLevel / 8;
 			duration = sData->fire.duration[level];
 	} else {
 		logError("Invalid Player shot type.");
@@ -274,19 +289,35 @@ void updatePlayerShot(){
 
 	if(handleDurationAndCheckIfOver(&sData->now, duration)){
 		if(sData->currentType == PLAYER_SHOT_FIRE){
-			int level = sData->fireLevel;
+			int level = sData->fireLevel / 8;
 			PhysicsObject pos = sData->fire.physics;
 			pos.mPosition = vecAdd(sData->fire.physics.mPosition, gData->physics.mPosition);
 			addPlayerShotCirc((void*)gData, sData->fire.strength, sData->fire.col, pos, sData->fire.animation, sData->fire.textures, fireActionAfter);
-			if(level >= 3){
+			if(level >= 4){
 				PhysicsObject copy = pos;
 				copy.mPosition.y -= 10;
 				addPlayerShotCirc((void*)gData, sData->fire.strength, sData->fire.col, copy, sData->fire.animation, sData->fire.textures, fireActionAfter);
 				copy = pos;
 				copy.mPosition.y += 10;
 				addPlayerShotCirc((void*)gData, sData->fire.strength, sData->fire.col, copy, sData->fire.animation, sData->fire.textures, fireActionAfter);
-
 			}
+			if(level >= 8){
+				PhysicsObject copy = pos;
+				copy.mPosition.y -= 20;
+				addPlayerShotCirc((void*)gData, sData->fire.strength, sData->fire.col, copy, sData->fire.animation, sData->fire.textures, fireActionAfter);
+				copy = pos;
+				copy.mPosition.y += 20;
+				addPlayerShotCirc((void*)gData, sData->fire.strength, sData->fire.col, copy, sData->fire.animation, sData->fire.textures, fireActionAfter);
+			}
+			if(level >= 16){
+				PhysicsObject copy = pos;
+				copy.mPosition.y -= 30;
+				addPlayerShotCirc((void*)gData, sData->fire.strength, sData->fire.col, copy, sData->fire.animation, sData->fire.textures, fireActionAfter);
+				copy = pos;
+				copy.mPosition.y += 30;
+				addPlayerShotCirc((void*)gData, sData->fire.strength, sData->fire.col, copy, sData->fire.animation, sData->fire.textures, fireActionAfter);
+			}
+			
 		} else {
 			logError("Invalid Player shot type.");
 			logErrorInteger(sData->currentType);

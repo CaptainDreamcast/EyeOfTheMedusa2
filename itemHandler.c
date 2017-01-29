@@ -18,6 +18,7 @@ void addPowerItems(Position p, int amount){
 		PhysicsObject physics;
 		physics.mPosition = f;
 		physics.mVelocity = v;
+		physics.mAcceleration = makePosition(0,0,0);
 		addPowerItem(NULL, col, ITEM_TYPE_POWER, physics, removeItemCB);
 	}
 }

@@ -32,7 +32,7 @@ static void setup() {
 	gData.background = loadTexturePKG("/sprites/TITLESCREEN.pkg");
 	gData.fireWorkShot = loadShotScript("/scripts/SHOT1.txt");
 	gData.isClosing = 0;
-	gData.shotAddDuration = 120;
+	gData.shotAddDuration = 60;
 	gData.shotAddNow = 0;
 
 	hasPressedStartFlank(); // TODO: fix flank impl; put to update
