@@ -27,11 +27,7 @@ void exitGame() {
 }
 
 void setMainFileSystem() {
-#ifdef DEVELOP
 	setFileSystem("/rd");
-#else
-  	setFileSystem("/cd");
-#endif
 }
 
 int main() {
