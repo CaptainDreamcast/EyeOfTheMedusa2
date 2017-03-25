@@ -10,7 +10,6 @@
 
 static CollisionData* gData;
 
-
 static void removeDeletedFromCollsionList(CollisionList* list){
 
 	int left = list->size;
@@ -52,38 +51,36 @@ static void emptyList(CollisionList* list){
 	removeDeletedFromCollsionList(list);
 }
 
-static void loadDebugTextures(CollisionData* cData){
+static  loadCollisionDebugTextures(CollisionData* cData){
 	cData->debug.collisionCircTexture = loadTexturePKG("/debug/collision_circ.pkg");
 	cData->debug.collisionRectTexture = loadTexturePKG("/debug/collision_rect.pkg");
 }
 
-static void unloadDebugTextures(CollisionData* cData){
+static void unloadCollisionDebugTextures(CollisionData* cData){
 	unloadTexture(cData->debug.collisionCircTexture);
 	unloadTexture(cData->debug.collisionRectTexture);
 }
 
-void setupCollision(CollisionData* cData){
+void setupGameCollision(CollisionData* cData){
 	initList(&cData->playerShots);
 	initList(&cData->enemyShots);
 	initList(&cData->enemies);
 	initList(&cData->player);
 	initList(&cData->playerCollection);
 	initList(&cData->items);
-	loadDebugTextures(cData);
-	gData->isPlayerFocused = 0;
+	loadCollisionDebugTextures(cData);
+	cData->isPlayerFocused = 0;
 	gData = cData;
 }
 
-void shutdownCollision(CollisionData* cData){
+void shutdownGameCollision(CollisionData* cData){
 	emptyList(&cData->playerShots);
 	emptyList(&cData->enemyShots);
 	emptyList(&cData->enemies);
 	emptyList(&cData->player);
 	emptyList(&cData->playerCollection);
 	emptyList(&cData->items);
-	unloadDebugTextures(cData);
-	gData->isPlayerFocused = 0;
-	gData = cData;
+	unloadCollisionDebugTextures(cData);
 }
 
 void addToCollisionList(CollisionList* list, CollisionElement* obj){
@@ -99,7 +96,7 @@ void addToCollisionList(CollisionList* list, CollisionElement* obj){
 	list->size++;
 }
 
-int addToCollisionListObj(CollisionList* list, void* col, void* caller, int strength, CollisionType type, int isOwningData, collisionHitCB hitCB){
+int addToCollisionListObj(CollisionList* list, void* col, void* caller, int strength, GameCollisionType type, int isOwningData, collisionHitCB hitCB){
 	CollisionElement* obj = malloc(sizeof(CollisionElement));
 	obj->id = getNextShotId();
 	obj->type = type;
@@ -114,10 +111,10 @@ int addToCollisionListObj(CollisionList* list, void* col, void* caller, int stre
 	addToCollisionList(list, obj);
 	return obj->id;
 }
-int addToCollisionListRect(CollisionList* list, CollisionObjectRect* col, void* caller, int strength, CollisionType type, int isOwningData, collisionHitCB hitCB){
+int addToCollisionListRect(CollisionList* list, CollisionObjectRect* col, void* caller, int strength, GameCollisionType type, int isOwningData, collisionHitCB hitCB){
 	return addToCollisionListObj(list, col, caller, strength, type, isOwningData, hitCB);
 }
-int addToCollisionListCirc(CollisionList* list, CollisionObjectCirc* col, void* caller, int strength, CollisionType type, int isOwningData, collisionHitCB hitCB){
+int addToCollisionListCirc(CollisionList* list, CollisionObjectCirc* col, void* caller, int strength, GameCollisionType type, int isOwningData, collisionHitCB hitCB){
 	return addToCollisionListObj(list, col, caller, strength, type, isOwningData, hitCB);
 }
 

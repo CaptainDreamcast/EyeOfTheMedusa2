@@ -1,11 +1,12 @@
 #include "script.h"
 
 #include <tari/log.h>
+#include <tari/file.h>
 
 void initScriptData(script* ret, char* path){
 	debugLog("Initialize Script.");
 	ret->raw = fileToBuffer(path);
-	ret->pointers.cur = (char*)ret->raw.data;	
+	ret->pointers.cur = (char*)ret->raw.mData;	
 	ret->subScriptAmount = 0;
 
 	ret->pointers.loadStart = strchr(ret->pointers.cur, '{')+1;

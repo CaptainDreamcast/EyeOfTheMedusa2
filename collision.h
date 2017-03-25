@@ -12,7 +12,7 @@ typedef enum  {
 	COLLISION_ENEMY,
 	COLLISION_PLAYER,
 	COLLISION_PLAYER_SHOT
-} CollisionType;
+} GameCollisionType;
 
 typedef enum  {
 	COLLISION_OBJECT_CIRC,
@@ -59,8 +59,8 @@ typedef struct{
 	int isPlayerFocused;
 } CollisionData;
 
-void setupCollision(CollisionData* cData);
-void shutdownCollision(CollisionData* cData);
+void setupGameCollision(CollisionData* cData);
+void shutdownGameCollision(CollisionData* cData);
 void updateCollision(CollisionData* cData);
 
 int addPlayerCirc(void* caller, CollisionObjectCirc* col, collisionHitCB hitCB);

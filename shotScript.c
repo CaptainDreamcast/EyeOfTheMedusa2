@@ -219,6 +219,7 @@ ScriptResult updateShotScript(script * this){
 
 ScriptDrawingData getShotScriptDrawingData(script * this){
 	ScriptDrawingData ret;
+	ret.size = 0;
 	return ret;
 
 }

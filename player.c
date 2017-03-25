@@ -1,5 +1,7 @@
 #include "player.h"
 
+#include <stdlib.h>
+
 #include <tari/input.h>
 #include <tari/log.h>
 #include <tari/system.h>
@@ -112,7 +114,7 @@ void loadPlayerBombTexture(PlayerData* pData){
 
 void unloadPlayerBombTexture(PlayerData* pData){
 	int i;
-	for(i = 0; i < pData->bomb.animation.mFrameAmount; i++){
+	for(i = 0; i < (int)pData->bomb.animation.mFrameAmount; i++){
 		unloadTexture(pData->bomb.textures[i]);
 	}
 }
@@ -136,7 +138,7 @@ void loadPlayerShotFire(PlayerShotFire* fData){
 
 void unloadPlayerShotFire(PlayerShotFire* fData){	
 	int i;
-	for(i = 0; i < fData->animation.mFrameAmount; i++) unloadTexture(fData->textures[i]);	
+	for(i = 0; i < (int)fData->animation.mFrameAmount; i++) unloadTexture(fData->textures[i]);	
 }
 
 void loadPlayerShots(PlayerData* pData){
@@ -173,8 +175,8 @@ void loadPlayerTextures(PlayerData* pData){
 
 void unloadPlayerTextures(PlayerData* pData){
 	int i;
-	for(i = 0; i < pData->animation.mFrameAmount; i++) unloadTexture(pData->textures[i]);
-	for(i = 0; i < pData->deathAnimation.mFrameAmount; i++) unloadTexture(pData->deathTextures[i]);	
+	for(i = 0; i < (int)pData->animation.mFrameAmount; i++) unloadTexture(pData->textures[i]);
+	for(i = 0; i < (int)pData->deathAnimation.mFrameAmount; i++) unloadTexture(pData->deathTextures[i]);	
 }
 
 

@@ -63,7 +63,7 @@ void unloadShotTypes(){
 	int i;
 	for(i = 0; i < gShotTypeAmount; i++){
 		int j;
-		for(j = 0; j < gShotTypes[i].animation.mFrameAmount; j++){
+		for(j = 0; j < (int)gShotTypes[i].animation.mFrameAmount; j++){
 			unloadTexture(gShotTypes[i].textures[j]);
 		}
 	}

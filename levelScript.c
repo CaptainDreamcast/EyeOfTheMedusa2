@@ -1,5 +1,7 @@
 #include "levelScript.h"
 
+#include <stdlib.h>
+
 #include <tari/log.h>
 #include <tari/system.h>
 #include <tari/math.h>
@@ -69,7 +71,6 @@ void unloadLevelScript(script * this){
 
 ScriptResult updateLevelScript(script * this){
 	LevelScriptData* data = this->data;
-	
 	
 	ScriptResult isSubScriptOver = this->subScripts[data->cur]->func.update(this->subScripts[data->cur]);
 	if(isSubScriptOver == SCRIPT_RESULT_CONTINUE) return SCRIPT_RESULT_CONTINUE;

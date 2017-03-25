@@ -3,6 +3,7 @@
 #include <tari/texture.h>
 #include <tari/timer.h>
 #include <tari/input.h>
+#include <tari/system.h>
 
 #include "script.h"
 #include "shotHandler.h"
@@ -24,10 +25,10 @@ static struct {
 	
 } gData;
 
-static void setup() {
+static void setupTitleScreen() {
 	setupTimer();
 	setupShotHandling();
-	setupCollision(&gData.cData);
+	setupGameCollision(&gData.cData);
 
 	gData.background = loadTexturePKG("/sprites/TITLESCREEN.pkg");
 	gData.fireWorkShot = loadShotScript("/scripts/SHOT1.txt");
@@ -42,7 +43,7 @@ static void shutdownScreen(){
 	unloadTexture(gData.background);
 	gData.fireWorkShot->func.unload(gData.fireWorkShot);
 	
-	shutdownCollision(&gData.cData);
+	shutdownGameCollision(&gData.cData);
 	shutdownShotHandling();
 	shutdownTimer();
 }
@@ -72,7 +73,8 @@ static void updateFirework(){
 	while(amount--) gData.fireWorkShot->func.update(gData.fireWorkShot);
 }
 
-static void update() {
+static void updateTitleScreen() {
+	updateSystem();
 	updateShotHandling();
 	updateCollision(&gData.cData);
 	updateInput();
@@ -86,7 +88,9 @@ static void shutdownCB(void* caller) {
 
 static GameScreenReturnType getRunningState() {
 
-	if(hasPressedAbortFlank()) return GAMESCREEN_RETURN_ABORT;
+	if (hasPressedAbortFlank()) {
+		return GAMESCREEN_RETURN_ABORT;
+	}
 
 	if(gData.isClosing == 1) return GAMESCREEN_RETURN_CONTINUE;
 	if(gData.isClosing == 2) return GAMESCREEN_RETURN_SUCCESS;
@@ -101,10 +105,10 @@ static GameScreenReturnType getRunningState() {
 
 
 GameScreenReturnType startTitleScreen(){
-	setup();
+	setupTitleScreen();
 	GameScreenReturnType ret = GAMESCREEN_RETURN_CONTINUE;
 	while(ret == GAMESCREEN_RETURN_CONTINUE){
-		update();
+		updateTitleScreen();
 		draw();
 		ret = getRunningState();
 	}

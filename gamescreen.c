@@ -5,6 +5,7 @@
 #include <tari/input.h>
 #include <tari/animation.h>
 #include <tari/timer.h>
+#include <tari/system.h>
 
 #include "shotHandler.h"
 #include "gameStateLogic.h"
@@ -12,10 +13,10 @@
 static GameScreenData gGameScreenData;
 
 static void setupGameScreen(char* mainScriptPath){
-	log("Setup game screen.");
+	logg("Setup game screen.");
 	setupPhysics(&gGameScreenData.physics);	
 	setupShotHandling();
-	setupCollision(&gGameScreenData.collision);
+	setupGameCollision(&gGameScreenData.collision);
 	setupPlayer(&gGameScreenData.player);
 	setupScripts(&gGameScreenData.scripts, mainScriptPath);
 	setupUserInterface(&gGameScreenData.userInterface, &gGameScreenData.player);
@@ -34,6 +35,7 @@ static GameScreenReturnType checkIfStillRunning(){
 }
 
 static GameScreenReturnType update(){
+	updateSystem();
 	updateInput();
 	updatePlayer(&gGameScreenData.player);
 	updateScripts(&gGameScreenData.scripts);
@@ -60,7 +62,7 @@ static void draw(){
 }
 
 static GameScreenReturnType gameScreenRoutine(){
-	log("Begin game routine.");
+	logg("Begin game routine.");
 	int gameIsRunning = 1;
 	GameScreenReturnType ret;
 
@@ -77,7 +79,7 @@ static GameScreenReturnType gameScreenRoutine(){
 static void shutdownGameScreen(){
 	shutdownPhysics(&gGameScreenData.physics);	
 	shutdownShotHandling();
-	shutdownCollision(&gGameScreenData.collision);
+	shutdownGameCollision(&gGameScreenData.collision);
 	
 	shutdownPlayer(&gGameScreenData.player);
 	shutdownScripts(&gGameScreenData.scripts);

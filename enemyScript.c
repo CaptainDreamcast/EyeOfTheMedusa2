@@ -156,11 +156,11 @@ script* loadEnemyScript(char* path){
 
 void unloadTexturesAndShots(script* this, EnemyScriptData* data){
 	int i;
-	for(i = 0; i < data->animation.mFrameAmount; i++){
+	for(i = 0; i < (int)data->animation.mFrameAmount; i++){
 		unloadTexture(data->textures[i]);
 	}
 
-	for(i = 0; i < data->deathAnimation.mFrameAmount; i++){
+	for(i = 0; i < (int)data->deathAnimation.mFrameAmount; i++){
 		unloadTexture(data->deathTextures[i]);
 	}	
 
@@ -279,12 +279,12 @@ ScriptResult updateEnemyScript(script * this){
 	readNextEnemyInstruction(this, data);
 
 	return SCRIPT_RESULT_CONTINUE;
-
 }
 
 
 ScriptDrawingData getEnemyScriptDrawingData(script * this){
 	ScriptDrawingData ret;
+	ret.size = 0;
 	EnemyScriptData* data = this->data;
 	if(data->isDying) return ret;
 
