@@ -4,6 +4,7 @@
 #include <tari/timer.h>
 #include <tari/input.h>
 #include <tari/log.h>
+#include <tari/system.h>
 
 #define BACKGROUND_Z 1
 
@@ -25,6 +26,7 @@ static void shutdownScreen() {
 }
 
 static void update() {
+	updateSystem();
 	updateInput();
 	updateTimer();
 }
@@ -61,7 +63,7 @@ static GameScreenReturnType getScreenState() {
 }
 
 GameScreenReturnType startCongratulationsScreen(){
-	log("Start Congrats screen.");
+	logg("Start Congrats screen.");
 	logMemoryState();
 	setup();
 	
@@ -74,7 +76,7 @@ GameScreenReturnType startCongratulationsScreen(){
 	}
 	shutdownScreen();
 
-	log("Exit Congrats screen.");	
+	logg("Exit Congrats screen.");	
 	logMemoryState();
 
 	return ret;

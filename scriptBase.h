@@ -18,7 +18,6 @@ typedef struct{
 
 typedef struct{
 	int size;
-	SingleScriptDrawingData data[10000];
 } ScriptDrawingData;
 
 #endif

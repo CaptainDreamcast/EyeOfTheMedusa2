@@ -9,7 +9,7 @@
 #include "scriptTypes.h"
 #include "gameStateLogic.h"
 
-script* mainScript;
+static script* mainScript;
 
 int isGameScript(char* path){
 	char* file = getPureFileName(path);

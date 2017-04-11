@@ -2,7 +2,7 @@
 #define SCRIPTHANDLER_H
 
 typedef struct{
-
+	int mDummy;
 } ScriptData;
 
 void setupScripts(ScriptData* sData, char* mainScriptPath);

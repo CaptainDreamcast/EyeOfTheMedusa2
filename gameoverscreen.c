@@ -5,6 +5,7 @@
 #include <tari/optionhandler.h>
 #include <tari/input.h>
 #include <tari/log.h>
+#include <tari/system.h>
 
 static struct {
 	TextureData background;	
@@ -66,6 +67,7 @@ static GameScreenReturnType updateState() {
 }
 
 static void update() {
+	updateSystem();
 	updateInput();
 	updateOptionHandler();
 	updateTimer();
@@ -85,10 +87,10 @@ static void draw() {
 }
 
 GameScreenReturnType startGameOverScreen(){
-	log("Setup Game Over screen.");
+	logg("Setup Game Over screen.");
 	logMemoryState();
 	setup();
-	log("Start Game Over screen.");
+	logg("Start Game Over screen.");
 	GameScreenReturnType ret = GAMESCREEN_RETURN_CONTINUE;
 	
 	while(ret == GAMESCREEN_RETURN_CONTINUE){
@@ -97,7 +99,7 @@ GameScreenReturnType startGameOverScreen(){
 		ret = updateState();
 	}
 	shutdownScreen();
-	log("Exit Game Over screen.");	
+	logg("Exit Game Over screen.");	
 	logMemoryState();
 
 	return ret;

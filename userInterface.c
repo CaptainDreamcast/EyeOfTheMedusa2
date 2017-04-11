@@ -1,5 +1,7 @@
 #include "userInterface.h"
 
+#include <stdio.h>
+
 #include <tari/physics.h>
 #include <tari/animation.h>
 #include <tari/input.h>

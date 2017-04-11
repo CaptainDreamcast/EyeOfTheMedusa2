@@ -2,7 +2,7 @@
 #define PHYSICS_H
 
 typedef struct{
-
+	int mDummy;
 } PhysicsData;
 
 void setupPhysics(PhysicsData* pData);

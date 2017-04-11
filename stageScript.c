@@ -17,6 +17,7 @@ ScriptResult updateStageScript(script * this){
 
 ScriptDrawingData getStageScriptDrawingData(script * this){
 	ScriptDrawingData d;
+	d.size = 0;
 	return d;
 }
 
