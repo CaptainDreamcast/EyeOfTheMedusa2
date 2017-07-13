@@ -1,6 +1,8 @@
 #ifndef GAMESCREEN_H
 #define GAMESCREEN_H
 
+#include <tari/wrapper.h>
+
 #include "scriptHandler.h"
 #include "player.h"
 #include "collision.h"
@@ -24,6 +26,7 @@ typedef struct {
 	int gameOverFlag;
 } GameScreenData;
 
-GameScreenReturnType startGameScreen(char* mainScriptPath);
+extern Screen GameScreen;
 
+void setMainScriptPath(char* tMainScriptPath);
 #endif

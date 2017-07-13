@@ -1,8 +1,8 @@
 #ifndef GAMEOVERSCREEN_H
 #define GAMEOVERSCREEN_H
 
-#include "gamescreen.h"
+#include <tari/wrapper.h>
 
-GameScreenReturnType startGameOverScreen();
+extern Screen GameOverScreen;
 
 #endif

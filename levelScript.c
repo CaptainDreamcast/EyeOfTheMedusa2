@@ -21,8 +21,8 @@ void loadSubScripts(script* ret){
 		char identifier[100];
 		char scriptName[100];	
 
-		ret->pointers.cur = getNextWord(ret->pointers.cur, identifier);
-		ret->pointers.cur = getNextWord(ret->pointers.cur, scriptName);
+		ret->pointers.cur = getNextMedusaWord(ret->pointers.cur, identifier);
+		ret->pointers.cur = getNextMedusaWord(ret->pointers.cur, scriptName);
 
 		char path[100];
 		getScriptPath(path, scriptName);

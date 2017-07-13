@@ -1,8 +1,7 @@
 #ifndef CONGRATULATIONSSCREEN_H
 #define CONGRATULATIONSSCREEN_H
 
-#include "gamescreen.h"
+#include <tari/wrapper.h>
 
-GameScreenReturnType startCongratulationsScreen();
-
+extern Screen CongratsScreen;
 #endif

@@ -34,11 +34,11 @@ void loadSectionAssets(script* this, SectionScriptData* data){
 
 		while(this->pointers.cur != NULL){
 			char word[100];
-			this->pointers.cur = getNextWord(this->pointers.cur, word);
+			this->pointers.cur = getNextMedusaWord(this->pointers.cur, word);
 			if(!strcmp("ENEMY", word)){
 				char scriptName[100];
 				char path[100];
-				getNextWord(this->pointers.cur, scriptName);
+				getNextMedusaWord(this->pointers.cur, scriptName);
 				getScriptPath(path, scriptName);
 
 				int enemy = data->enemyAmount;
@@ -130,14 +130,14 @@ int isSectionWaiting(script* this, SectionScriptData* data){
 
 void readNextSectionInstruction(script* this, SectionScriptData* data){
 	char word[100];
-	this->pointers.cur = getNextWord(this->pointers.cur, word);
+	this->pointers.cur = getNextMedusaWord(this->pointers.cur, word);
 	if(!strcmp("ENEMY", word)){
 		data->isEnemyAlive[data->curEnemy] = 1;
 		vitalizeEnemy(data->subEnemies[data->curEnemy]);
 		data->curEnemy++;
 	} else if(!strcmp("WAIT", word)){
 		int v;
-		this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);
+		this->pointers.cur = getNextMedusaScriptInteger(this->pointers.cur, &v);
 		data->duration = v;
 		data->now = 0;
 	}		

@@ -24,9 +24,6 @@
     <ClCompile Include="..\enemyScript.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\game.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\gameoverscreen.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -90,9 +87,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\enemyScript.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\game.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\gameoverscreen.h">

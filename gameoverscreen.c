@@ -7,9 +7,12 @@
 #include <tari/log.h>
 #include <tari/system.h>
 
+#include "gamescreen.h"
+#include "titlescreen.h"
+
 static struct {
 	TextureData background;	
-	GameScreenReturnType returnValue;
+	Screen* mReturn;
 	int isWaiting;
 } gData;
 
@@ -27,18 +30,18 @@ static void waitForCB() {
 }
 
 static void continueCB(void* caller){
-	gData.returnValue = GAMESCREEN_RETURN_FAILURE;
+	gData.mReturn = &GameScreen;
 	waitForCB();
 }
 
 static void noContinueCB(void* caller){
-	gData.returnValue = GAMESCREEN_RETURN_SUCCESS;
+	gData.mReturn = &TitleScreen;
 	waitForCB();
 }
 
 static void setup(){
 	gData.background = loadTexturePKG("/sprites/GAMEOVER.pkg");
-	gData.returnValue = 0;
+	gData.mReturn = NULL;
 	gData.isWaiting = 0;
 
 	setupOptionHandler();
@@ -47,7 +50,6 @@ static void setup(){
 	setOptionTextSize(20);
 	setOptionButtonA();
 	setOptionButtonStart();
-	setupTimer();
 
 	hasPressedAFlank(); hasPressedStartFlank(); // TODO: remove when fixed
 }
@@ -55,15 +57,15 @@ static void setup(){
 static void shutdownScreen(){
 	unloadTexture(gData.background);
 	shutdownOptionHandler();
-	shutdownTimer();
 }
 
-static GameScreenReturnType updateState() {
-	if(hasPressedAbortFlank()) return GAMESCREEN_RETURN_ABORT;
+static void updateState() {
+	if (hasPressedAbortFlank()) {
+		setNewScreen(&TitleScreen);
+	}
 
-	if(gData.isWaiting == 2) return gData.returnValue;
-	
-	return GAMESCREEN_RETURN_CONTINUE;
+	if(gData.isWaiting == 2) setNewScreen(gData.mReturn);
+
 }
 
 static void update() {
@@ -71,6 +73,7 @@ static void update() {
 	updateInput();
 	updateOptionHandler();
 	updateTimer();
+	updateState();
 }
 
 static void drawBackground() {
@@ -79,28 +82,15 @@ static void drawBackground() {
 }
 
 static void draw() {
-	waitForScreen();
-	startDrawing();
 	drawBackground();
 	drawOptionHandler();
-	stopDrawing();
 }
 
-GameScreenReturnType startGameOverScreen(){
-	logg("Setup Game Over screen.");
-	logMemoryState();
-	setup();
-	logg("Start Game Over screen.");
-	GameScreenReturnType ret = GAMESCREEN_RETURN_CONTINUE;
-	
-	while(ret == GAMESCREEN_RETURN_CONTINUE){
-		update();
-		draw();
-		ret = updateState();
-	}
-	shutdownScreen();
-	logg("Exit Game Over screen.");	
-	logMemoryState();
 
-	return ret;
-}
+
+Screen GameOverScreen = {
+	.mLoad = setup,
+	.mUnload = shutdownScreen,
+	.mUpdate = update,
+	.mDraw = draw,
+};

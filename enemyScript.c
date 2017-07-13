@@ -41,7 +41,7 @@ typedef struct{
 
 void loadEnemyTexture(script* this, EnemyScriptData* data, TextureData* textures, Animation* animation){
 	char path[100];
-	this->pointers.cur = getNextWord(this->pointers.cur, path);
+	this->pointers.cur = getNextMedusaWord(this->pointers.cur, path);
 
 
 	textures[animation->mFrameAmount] = loadTexturePKG(path);
@@ -50,7 +50,7 @@ void loadEnemyTexture(script* this, EnemyScriptData* data, TextureData* textures
 
 void loadEnemyShot(script* this, EnemyScriptData* data){
 	char scriptName[100];
-	this->pointers.cur = getNextWord(this->pointers.cur, scriptName);
+	this->pointers.cur = getNextMedusaWord(this->pointers.cur, scriptName);
 	char path[100];
 	getScriptPath(path, scriptName);
 
@@ -83,7 +83,7 @@ void loadEnemyAssets(script* this, EnemyScriptData* data){
 
 	while(this->pointers.cur != NULL){
 		char word[100];
-		this->pointers.cur = getNextWord(this->pointers.cur, word);
+		this->pointers.cur = getNextMedusaWord(this->pointers.cur, word);
 		
 		if(!strcmp("TEXTURE", word)){
 			loadEnemyTexture(this, data, data->textures, &data->animation);
@@ -91,44 +91,44 @@ void loadEnemyAssets(script* this, EnemyScriptData* data){
 			loadEnemyTexture(this, data, data->deathTextures, &data->deathAnimation);
 		} else if(!strcmp("DURATION", word)){
 			int v;
-			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);
+			this->pointers.cur = getNextMedusaScriptInteger(this->pointers.cur, &v);
 			data->animation.mDuration = v;
 		} else if(!strcmp("DEATH_DURATION", word)){
 			int v;
-			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);
+			this->pointers.cur = getNextMedusaScriptInteger(this->pointers.cur, &v);
 			data->deathAnimation.mDuration = v;
 		} else if(!strcmp("POSITION", word)){
 			int v;
-			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);
+			this->pointers.cur = getNextMedusaScriptInteger(this->pointers.cur, &v);
 			data->physics.mPosition.x = v;
-			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);
+			this->pointers.cur = getNextMedusaScriptInteger(this->pointers.cur, &v);
 			data->physics.mPosition.y = v;
 		} else if(!strcmp("SHOT", word)){
 			loadEnemyShot(this, data);
 		} else if(!strcmp("COL_CENTER", word)){
 			int v;
-			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);
+			this->pointers.cur = getNextMedusaScriptInteger(this->pointers.cur, &v);
 			data->col.mCol.mCenter.x = v;
-			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);
+			this->pointers.cur = getNextMedusaScriptInteger(this->pointers.cur, &v);
 			data->col.mCol.mCenter.y = v;
 		} else if(!strcmp("COL_RADIUS", word)){
 			int v;
-			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);
+			this->pointers.cur = getNextMedusaScriptInteger(this->pointers.cur, &v);
 			data->col.mCol.mRadius = v;
 		} else if(!strcmp("HEALTH", word)){
-			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &data->health);
+			this->pointers.cur = getNextMedusaScriptInteger(this->pointers.cur, &data->health);
 		} else if(!strcmp("LIFE_TIME", word)){
 			int v;
-			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);
+			this->pointers.cur = getNextMedusaScriptInteger(this->pointers.cur, &v);
 			data->lifeDuration = v;
 		}  else if(!strcmp("DROP", word)){
-			this->pointers.cur = getNextWord(this->pointers.cur, word);
+			this->pointers.cur = getNextMedusaWord(this->pointers.cur, word);
 			if(!strcmp("POWER", word)) data->dropType = ITEM_TYPE_POWER;
 			else {
 				logError("Unable to parse drop type.");
 				logErrorString(word);
 			}
-			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &data->dropAmount);
+			this->pointers.cur = getNextMedusaScriptInteger(this->pointers.cur, &data->dropAmount);
 		}
 
 		this->pointers.cur = toNextInstruction(this->pointers.cur, this->pointers.loadEnd);
@@ -191,13 +191,13 @@ int isEnemyWaiting(script* this, EnemyScriptData* data){
 
 void readNextEnemyInstruction(script* this, EnemyScriptData* data){
 	char word[100];
-	this->pointers.cur = getNextWord(this->pointers.cur, word);
+	this->pointers.cur = getNextMedusaWord(this->pointers.cur, word);
 
 	if(!strcmp("SHOT", word)){
 		int shotType;
-		this->pointers.cur = getNextScriptInteger(this->pointers.cur, &shotType);
+		this->pointers.cur = getNextMedusaScriptInteger(this->pointers.cur, &shotType);
 		int amount;
-		this->pointers.cur = getNextScriptInteger(this->pointers.cur, &amount);
+		this->pointers.cur = getNextMedusaScriptInteger(this->pointers.cur, &amount);
 		
 	
 		int i;
@@ -207,14 +207,14 @@ void readNextEnemyInstruction(script* this, EnemyScriptData* data){
 		}
 	} else if(!strcmp("WAIT", word)){
 		int v;
-		this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);
+		this->pointers.cur = getNextMedusaScriptInteger(this->pointers.cur, &v);
 		data->duration = v;
 		data->now = 0;
 	} else if(!strcmp("MOVE", word)){
 			int v;
-			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);
+			this->pointers.cur = getNextMedusaScriptInteger(this->pointers.cur, &v);
 			data->physics.mVelocity.x = v;
-			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);
+			this->pointers.cur = getNextMedusaScriptInteger(this->pointers.cur, &v);
 			data->physics.mVelocity.y = v;
 	} else if(!strcmp("STOP", word)){
 			data->physics.mVelocity.x = data->physics.mVelocity.y = 0;

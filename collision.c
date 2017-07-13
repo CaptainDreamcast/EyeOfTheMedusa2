@@ -51,7 +51,7 @@ static void emptyList(CollisionList* list){
 	removeDeletedFromCollsionList(list);
 }
 
-static  loadCollisionDebugTextures(CollisionData* cData){
+static void loadCollisionDebugTextures(CollisionData* cData){
 	cData->debug.collisionCircTexture = loadTexturePKG("/debug/collision_circ.pkg");
 	cData->debug.collisionRectTexture = loadTexturePKG("/debug/collision_rect.pkg");
 }

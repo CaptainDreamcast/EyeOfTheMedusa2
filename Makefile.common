@@ -1,0 +1,3 @@
+OBJS = main.o gamescreen.o scriptHandler.o player.o collision.o physics.o userInterface.o gameScript.o script.o levelScript.o \
+scriptTypes.o stageScript.o sectionScript.o enemyScript.o shotScript.o shotHandler.o gameStateLogic.o itemHandler.o titlescreen.o \
+gameoverscreen.o congratulationsscreen.o 

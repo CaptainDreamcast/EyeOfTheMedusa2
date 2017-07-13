@@ -7,8 +7,9 @@
 #include <tari/framerateselectscreen.h>
 #include <tari/drawing.h>
 #include <tari/system.h>
+#include <tari/wrapper.h>
 
-#include "game.h"
+#include "titlescreen.h"
 
 #ifdef DREAMCAST
 #include <kos.h> 
@@ -54,7 +55,7 @@ int main(int argc, char** argv) {
 	}
 
 	logg("Begin game routine");
-	startGame();
+	startScreenHandling(&TitleScreen);
 
 
 	exitGame();

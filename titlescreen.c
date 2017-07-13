@@ -9,6 +9,7 @@
 #include "shotHandler.h"
 #include "collision.h"
 #include "shotScript.h"
+#include "gamescreen.h"
 
 #define BACKGROUND_Z 5
 
@@ -26,7 +27,6 @@ static struct {
 } gData;
 
 static void setupTitleScreen() {
-	setupTimer();
 	setupShotHandling();
 	setupGameCollision(&gData.cData);
 
@@ -45,7 +45,6 @@ static void shutdownScreen(){
 	
 	shutdownGameCollision(&gData.cData);
 	shutdownShotHandling();
-	shutdownTimer();
 }
 
 static void drawBackground() {
@@ -54,11 +53,8 @@ static void drawBackground() {
 }
 
 static void draw(){
-	waitForScreen();
-	startDrawing();
 	drawBackground();
 	drawShotHandling();
-	stopDrawing();
 }
 
 static void updateFirework(){
@@ -73,6 +69,29 @@ static void updateFirework(){
 	while(amount--) gData.fireWorkShot->func.update(gData.fireWorkShot);
 }
 
+
+
+static void shutdownCB(void* caller) {
+	gData.isClosing = 2;
+}
+
+static void getRunningState() {
+
+	if (hasPressedAbortFlank()) {
+		abortScreenHandling();
+	}
+
+	if (gData.isClosing == 2) {
+		setMainScriptPath("/scripts/LEVEL1.txt");
+		setNewScreen(&GameScreen);
+	}
+
+	if(hasPressedStartFlank()) {
+		addTimerCB(100, shutdownCB, &gData);
+	}
+
+}
+
 static void updateTitleScreen() {
 	updateSystem();
 	updateShotHandling();
@@ -80,40 +99,12 @@ static void updateTitleScreen() {
 	updateInput();
 	updateTimer();
 	updateFirework();
+	getRunningState();
 }
 
-static void shutdownCB(void* caller) {
-	gData.isClosing = 2;
-}
-
-static GameScreenReturnType getRunningState() {
-
-	if (hasPressedAbortFlank()) {
-		return GAMESCREEN_RETURN_ABORT;
-	}
-
-	if(gData.isClosing == 1) return GAMESCREEN_RETURN_CONTINUE;
-	if(gData.isClosing == 2) return GAMESCREEN_RETURN_SUCCESS;
-
-
-	if(hasPressedStartFlank()) {
-		addTimerCB(100, shutdownCB, &gData);
-	}
-
-	return GAMESCREEN_RETURN_CONTINUE;
-}
-
-
-GameScreenReturnType startTitleScreen(){
-	setupTitleScreen();
-	GameScreenReturnType ret = GAMESCREEN_RETURN_CONTINUE;
-	while(ret == GAMESCREEN_RETURN_CONTINUE){
-		updateTitleScreen();
-		draw();
-		ret = getRunningState();
-	}
-	shutdownScreen();	
-
-	return ret;
-}
-
+Screen TitleScreen = {
+	.mLoad = setupTitleScreen,
+	.mUnload = shutdownScreen,
+	.mUpdate = updateTitleScreen,
+	.mDraw = draw,
+};

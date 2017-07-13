@@ -9,32 +9,37 @@
 
 #include "shotHandler.h"
 #include "gameStateLogic.h"
+#include "titlescreen.h"
+#include "congratulationsscreen.h"
+#include "gameoverscreen.h"
 
 static GameScreenData gGameScreenData;
+static char gMainScriptPath[1024];
 
-static void setupGameScreen(char* mainScriptPath){
+void setMainScriptPath(char* tMainScriptPath) {
+	strcpy(gMainScriptPath, tMainScriptPath);
+}
+
+static void setupGameScreen(){
 	logg("Setup game screen.");
 	setupPhysics(&gGameScreenData.physics);	
 	setupShotHandling();
 	setupGameCollision(&gGameScreenData.collision);
 	setupPlayer(&gGameScreenData.player);
-	setupScripts(&gGameScreenData.scripts, mainScriptPath);
+	setupScripts(&gGameScreenData.scripts, gMainScriptPath);
 	setupUserInterface(&gGameScreenData.userInterface, &gGameScreenData.player);
 	setupGameStateLogic(&gGameScreenData.winFlag, &gGameScreenData.gameOverFlag);
-	setupAnimationHandler();
-	setupTimer();
 }
 
-static GameScreenReturnType checkIfStillRunning(){
+static void checkIfStillRunning(){
 
-	if(hasPressedAbortFlank()) return GAMESCREEN_RETURN_ABORT;
-	if(gGameScreenData.winFlag) return GAMESCREEN_RETURN_SUCCESS;
-	if(gGameScreenData.gameOverFlag) return GAMESCREEN_RETURN_FAILURE;
+	if(hasPressedAbortFlank()) setNewScreen(&TitleScreen);
+	if(gGameScreenData.winFlag) setNewScreen(&CongratsScreen);
+	if (gGameScreenData.gameOverFlag) setNewScreen(&GameOverScreen);
 
-	return GAMESCREEN_RETURN_CONTINUE;
 }
 
-static GameScreenReturnType update(){
+static void update(){
 	updateSystem();
 	updateInput();
 	updatePlayer(&gGameScreenData.player);
@@ -43,38 +48,18 @@ static GameScreenReturnType update(){
 	updateShotHandling();
 	updateCollision(&gGameScreenData.collision);
 	updateUserInterface(&gGameScreenData.userInterface);
-	updateAnimationHandler();
-	updateTimer();
-	
-	return checkIfStillRunning();
+	checkIfStillRunning();
 }
 
 static void draw(){
-	waitForScreen();
-	startDrawing();
 	drawPlayer(&gGameScreenData.player);
 	drawShotHandling();
 	drawUserInterface(&gGameScreenData.userInterface);
 	drawScripts(&gGameScreenData.scripts);
 	drawCollisions(&gGameScreenData.collision);
 	drawHandledAnimations();
-	stopDrawing();
 }
 
-static GameScreenReturnType gameScreenRoutine(){
-	logg("Begin game routine.");
-	int gameIsRunning = 1;
-	GameScreenReturnType ret;
-
-	while(gameIsRunning){
-		ret = update();
-		draw();
-
-		if(ret != GAMESCREEN_RETURN_CONTINUE) gameIsRunning = 0;
-	}
-
-	return ret;
-}
 
 static void shutdownGameScreen(){
 	shutdownPhysics(&gGameScreenData.physics);	
@@ -85,8 +70,6 @@ static void shutdownGameScreen(){
 	shutdownScripts(&gGameScreenData.scripts);
 	shutdownUserInterface(&gGameScreenData.userInterface);
 	shutdownGameStateLogic();
-	shutdownAnimationHandler();
-	shutdownTimer();
 
 	// TODO: make properly
 	resumePhysics();
@@ -97,12 +80,10 @@ static void shutdownGameScreen(){
 	logTextureMemoryState();
 }
 
-GameScreenReturnType startGameScreen(char* mainScriptPath){
-	
-	setupGameScreen(mainScriptPath);
+Screen GameScreen = {
+	.mLoad = setupGameScreen,
+	.mUnload = shutdownGameScreen,
+	.mUpdate = update,
+	.mDraw = draw,
+};
 
-	GameScreenReturnType ret = gameScreenRoutine();
-
-	shutdownGameScreen();	
-	return ret;
-}

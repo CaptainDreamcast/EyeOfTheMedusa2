@@ -77,63 +77,63 @@ void loadShotAssets(script* this, ShotScriptData* data){
 
 	while(this->pointers.cur != NULL){
 		char word[100];
-		this->pointers.cur = getNextWord(this->pointers.cur, word);
+		this->pointers.cur = getNextMedusaWord(this->pointers.cur, word);
 			
 		if(!strcmp("TYPE", word)){
-			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &data->shotType);
+			this->pointers.cur = getNextMedusaScriptInteger(this->pointers.cur, &data->shotType);
 		} else if(!strcmp("POSITION", word)){
-			this->pointers.cur = getNextScriptDouble(this->pointers.cur, &data->physics.mPosition.x);	
-			this->pointers.cur = getNextScriptDouble(this->pointers.cur, &data->physics.mPosition.y);	
+			this->pointers.cur = getNextMedusaScriptDouble(this->pointers.cur, &data->physics.mPosition.x);	
+			this->pointers.cur = getNextMedusaScriptDouble(this->pointers.cur, &data->physics.mPosition.y);	
 		} else if(!strcmp("VELOCITY", word)){
-			this->pointers.cur = getNextScriptDouble(this->pointers.cur, &data->physics.mVelocity.x);	
-			this->pointers.cur = getNextScriptDouble(this->pointers.cur, &data->physics.mVelocity.y);
+			this->pointers.cur = getNextMedusaScriptDouble(this->pointers.cur, &data->physics.mVelocity.x);	
+			this->pointers.cur = getNextMedusaScriptDouble(this->pointers.cur, &data->physics.mVelocity.y);
 		} else if(!strcmp("ACCEL", word)){
 			int v;
-			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);	
+			this->pointers.cur = getNextMedusaScriptInteger(this->pointers.cur, &v);	
 			data->physics.mAcceleration.x= v;
-			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);	
+			this->pointers.cur = getNextMedusaScriptInteger(this->pointers.cur, &v);	
 			data->physics.mAcceleration.y= v;
 		} else if(!strcmp("RANDOMIZE_POSITION", word)){
 			int v;
-			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);	
+			this->pointers.cur = getNextMedusaScriptInteger(this->pointers.cur, &v);	
 			data->randomization.mPosition.x= v;
-			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);	
+			this->pointers.cur = getNextMedusaScriptInteger(this->pointers.cur, &v);	
 			data->randomization.mPosition.y= v;
 		} else if(!strcmp("RANDOMIZE_VELOCITY", word)){
 			int v;
-			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);	
+			this->pointers.cur = getNextMedusaScriptInteger(this->pointers.cur, &v);	
 			data->randomization.mVelocity.x= v;
-			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);	
+			this->pointers.cur = getNextMedusaScriptInteger(this->pointers.cur, &v);	
 			data->randomization.mVelocity.y= v;
 		} else if(!strcmp("RANDOMIZE_ACCEL", word)){
 			int v;
-			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);	
+			this->pointers.cur = getNextMedusaScriptInteger(this->pointers.cur, &v);	
 			data->randomization.mAcceleration.x= v;
-			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);	
+			this->pointers.cur = getNextMedusaScriptInteger(this->pointers.cur, &v);	
 			data->randomization.mAcceleration.y= v;
 		} else if(!strcmp("ANGLE", word)){
-			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &data->angle);
-			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &data->speed);
+			this->pointers.cur = getNextMedusaScriptInteger(this->pointers.cur, &data->angle);
+			this->pointers.cur = getNextMedusaScriptInteger(this->pointers.cur, &data->speed);
 			data->isAngle = 1;
 		} else if(!strcmp("TOWARDS_PLAYER", word)){
-			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &data->isTowardsPlayer);
-			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &data->speed);
+			this->pointers.cur = getNextMedusaScriptInteger(this->pointers.cur, &data->isTowardsPlayer);
+			this->pointers.cur = getNextMedusaScriptInteger(this->pointers.cur, &data->speed);
 		}  else if(!strcmp("HIT_CENTER", word)){
 			int v;
-			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);
+			this->pointers.cur = getNextMedusaScriptInteger(this->pointers.cur, &v);
 			data->col.mCenter.x = v;
-			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);
+			this->pointers.cur = getNextMedusaScriptInteger(this->pointers.cur, &v);
 			data->col.mCenter.y = v;
 		} else if(!strcmp("HIT_RADIUS", word)){
 			int v;
-			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &v);
+			this->pointers.cur = getNextMedusaScriptInteger(this->pointers.cur, &v);
 			data->col.mRadius = v;
 		} else if(!strcmp("STRENGTH", word)){
-			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &data->strength);
+			this->pointers.cur = getNextMedusaScriptInteger(this->pointers.cur, &data->strength);
 		} else if(!strcmp("POSITION_ABSOLUTE", word)){
-			this->pointers.cur = getNextScriptInteger(this->pointers.cur, &data->isPositionAbsolute);
+			this->pointers.cur = getNextMedusaScriptInteger(this->pointers.cur, &data->isPositionAbsolute);
 		} else if(!strcmp("COLOR", word)){
-			this->pointers.cur = getNextWord(this->pointers.cur, word);
+			this->pointers.cur = getNextMedusaWord(this->pointers.cur, word);
 			data->color = stringToShotColor(word);
 		} else {
 			logError("Unable to parse word");
@@ -200,7 +200,7 @@ ScriptResult updateShotScript(script * this){
 		physics.mVelocity = vecScale(direction, data->speed);
 	}
 
-	Color color = data->color;
+	int color = (int)data->color;
 	if(color == -1){
 		color = getRandomColor();
 	}

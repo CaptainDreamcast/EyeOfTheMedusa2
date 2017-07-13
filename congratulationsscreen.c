@@ -6,6 +6,8 @@
 #include <tari/log.h>
 #include <tari/system.h>
 
+#include "titlescreen.h"
+
 #define BACKGROUND_Z 1
 
 static struct {
@@ -17,19 +19,13 @@ static void setup() {
 	gData.isWaiting = 0;
 
 	gData.background = loadTexturePKG("/sprites/CONGLATURATIONS.pkg");
-	setupTimer();
 }
 
 static void shutdownScreen() {
 	unloadTexture(gData.background);
-	shutdownTimer();
 }
 
-static void update() {
-	updateSystem();
-	updateInput();
-	updateTimer();
-}
+
 
 static void drawBackground() {
 	Rectangle r = makeRectangleFromTexture(gData.background);
@@ -37,47 +33,36 @@ static void drawBackground() {
 }
 
 static void draw() {
-	waitForScreen();
-	startDrawing();
 	drawBackground();
-	stopDrawing();
 }
 
 static void finalizeCB(void * caller) {
 	gData.isWaiting = 2;
 }
 
-static GameScreenReturnType getScreenState() {
-	if(hasPressedAbortFlank()) return GAMESCREEN_RETURN_ABORT;
+static void getScreenState() {
+	if (hasPressedAbortFlank()) setNewScreen(&TitleScreen);
 	
-	if(gData.isWaiting == 2) return GAMESCREEN_RETURN_SUCCESS;
-	if(gData.isWaiting == 1) return GAMESCREEN_RETURN_CONTINUE;
+	if(gData.isWaiting == 2) setNewScreen(&TitleScreen);
+	if (gData.isWaiting == 1) return;
 
 
 	if(hasPressedStartFlank()) {
 		gData.isWaiting = 1;
 		addTimerCB(100, finalizeCB, NULL);
 	}
-
-	return GAMESCREEN_RETURN_CONTINUE;
 }
 
-GameScreenReturnType startCongratulationsScreen(){
-	logg("Start Congrats screen.");
-	logMemoryState();
-	setup();
-	
-	GameScreenReturnType ret = GAMESCREEN_RETURN_CONTINUE;
-	
-	while(ret == GAMESCREEN_RETURN_CONTINUE){
-		update();
-		draw();
-		ret = getScreenState();
-	}
-	shutdownScreen();
-
-	logg("Exit Congrats screen.");	
-	logMemoryState();
-
-	return ret;
+static void update() {
+	updateSystem();
+	updateInput();
+	updateTimer();
+	getScreenState();
 }
+
+Screen CongratsScreen = {
+	.mLoad = setup,
+	.mUnload = shutdownScreen,
+	.mUpdate = update,
+	.mDraw = draw,
+};

@@ -3,9 +3,15 @@
 *.elf
 romdisk_boot
 *.img
-dc-tool_medusa
+dc-tool_*
 *.kmg
 *.pkg
+filesystem
+
+*.html
+*.html.mem
+*.data
+*.js
 
 windows/.vs/*
 windows/Release/*

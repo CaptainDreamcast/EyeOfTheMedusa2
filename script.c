@@ -21,14 +21,14 @@ char* toNextInstruction(char* pointer, char* end){
 	
 	if(pointer != NULL){
 		char testEnd[100];
-		getNextWord(pointer, testEnd);
+		getNextMedusaWord(pointer, testEnd);
 		if(testEnd[0] == '}') pointer = NULL;
 	}
 
 	return pointer;
 }
 
-char* getNextWord(char* scriptPointer, char* word){
+char* getNextMedusaWord(char* scriptPointer, char* word){
 	debugLog("Reading next word");
 	int positionsRead;	
 	sscanf(scriptPointer, "%s%n", word, &positionsRead);
@@ -39,7 +39,7 @@ char* getNextWord(char* scriptPointer, char* word){
 	return scriptPointer;
 }
 
-char* getNextScriptInteger(char* scriptPointer, int* v){
+char* getNextMedusaScriptInteger(char* scriptPointer, int* v){
 	debugLog("Reading next Integer");
 	int positionsRead;	
 	sscanf(scriptPointer, "%d%n", v, &positionsRead);
@@ -50,7 +50,7 @@ char* getNextScriptInteger(char* scriptPointer, int* v){
 	return scriptPointer;
 }
 
-char* getNextScriptDouble(char* scriptPointer, double* v){
+char* getNextMedusaScriptDouble(char* scriptPointer, double* v){
 	debugLog("Reading next Double");
 	int positionsRead;	
 	sscanf(scriptPointer, "%lf%n", v, &positionsRead);

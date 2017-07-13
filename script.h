@@ -39,9 +39,9 @@ typedef struct script_internal {
 void initScriptData(script* s, char* path);
 
 char* toNextInstruction(char* scriptPointer, char* blockEnd);
-char* getNextWord(char* scriptPointer, char* word);
-char* getNextScriptInteger(char* scriptPointer, int* v);
-char* getNextScriptDouble(char* scriptPointer, double* v);
+char* getNextMedusaWord(char* scriptPointer, char* word);
+char* getNextMedusaScriptInteger(char* scriptPointer, int* v);
+char* getNextMedusaScriptDouble(char* scriptPointer, double* v);
 
 void getScriptPath(char* outPath, char* scriptName);
 
