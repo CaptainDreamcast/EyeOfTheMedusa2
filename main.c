@@ -30,7 +30,7 @@ void exitGame() {
 #endif
 }
 
-void setMainFileSystem() {
+static void setMainFileSystem() {
 	setFileSystem("/rd");
 }
 
@@ -40,11 +40,7 @@ int main(int argc, char** argv) {
 
 	setGameName("EYE OF THE MEDUSA: ULTIMATE FRONTIER");
 
-	initSystem();
-	initiatePVR();
-	initPhysics();
-	initFileSystem();
-	initDrawing();
+	initTariWrapperWithDefaultFlags();
 	setMainFileSystem();
 
 	logg("Check framerate");
